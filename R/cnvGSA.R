@@ -12,6 +12,9 @@ cnvGSAFisher <- function( input )
 
 cnvGSAexportBurdenStats <- function( output, filenamePrefix )
 {
+	if( missing(output) ) {
+		stop( "Missing 'output' argument" )
+	}
 	if( missing(filenamePrefix) ) {
 		stop( "Missing 'filenamePrefix' argument" )
 	}

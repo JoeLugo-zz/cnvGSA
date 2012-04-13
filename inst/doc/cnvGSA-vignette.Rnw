@@ -1090,10 +1090,13 @@ The rationale for these statistics is twofold: on the one hand, it is another ch
 
 \bibitem{lionel2011} A. C. Lionel et al. Rare Copy Number Variation Discovery and Cross-Disorder Comparisons Identify Risk Genes for ADHD. {\it Sci. Transl. Med.} {\bf 3}, 95ra75 (2011).
 
-\bibitem{marshall2008} C. R. Marshall et al. Structural Variation of Chromosomes in Autism Spectrum Disorder. {\it Am J Hum Genet.} 2008 Feb 8; {\bf 82}(2): 477--488.
+\bibitem{marshall2008} C. R. Marshall et al. Structural Variation of Chromosomes in Autism Spectrum Disorder. {\it Am J Hum Genet.} 2008 Feb 8; {\bf 82}(2): 477--488..
 \end{thebibliography}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \end{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
