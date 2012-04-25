@@ -55,9 +55,9 @@
 
 \texttt{cnvGSA} is an \texttt{R} package meant to facilitate gene-set analysis of (rare) copy number variants (CNVs).\\
 \\
-Known gene-sets are tested for prevalence of rare variants in case vs.~control subjects. Whenever a subject has at least one gene in a gene-set affected by a rare variant, a perturbation count of 1 is assigned to the (subject, gene-set) pair; for each gene-set, subject counts are tested vs. control counts using the Fisher Exact Test (FET). Significant gene-sets will have a significantly high count in cases compared to controls. Statistical reports on burden are also generated.\\
+Known gene-sets are tested for prevalence of rare variants in case vs.~control subjects. Whenever a subject has at least one gene in a gene-set affected by a rare variant, a perturbation count of 1 is assigned to the (subject, gene-set) pair; for each gene-set, subject counts are tested vs. control counts using the Fisher Exact Test (FET). Significant gene-sets will have a significantly high count in cases compared to controls. Statistical reports on CNV burden in cases and controls are also generated.\\
 \\
-{\bf Note:} this analysis requires that subjects be unrelated and that case/control cohorts be matched by sex, age, ethnicity, and other potential confounders (such as platform and CNV detection methods). In addition, only rare CNVs should be present. The definition of `rare' is typically based on frequency in the study subjects or on a larger data-set of independent controls that are used to remove putative common regions -- or on a combination of both techniques. For more details about this, see \cite{lionel2011} and \cite{marshall2008}.
+{\bf Note:} this analysis requires that subjects be unrelated and that case/control cohorts be matched by sex, age, ethnicity, and other potential confounders (such as platform and CNV detection methods). In addition, only rare CNVs should be present. The definition of `rare' is typically based on CNV frequency in the study subjects or on a larger data-set of independent controls that are used to remove putative common regions -- or on a combination of both techniques. For more details about this, see \cite{lionel2011} and \cite{marshall2008}.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -66,7 +66,7 @@ Known gene-sets are tested for prevalence of rare variants in case vs.~control s
 \section{Workflow outline}
 \label{WorkflowOutline}
 
-The general procedure for performing a CNV gene-set analysis involves loading CNVs and gene-sets and related data, setting filters and parameters, running the analysis, and reviewing the results. To facilitate these operations, the package provides \texttt{"CnvGSAInput"}, an S4 class acting as a simple container data structure with slots for each required input data structure:
+The general procedure for performing a CNV gene-set analysis involves loading CNV and gene-set data, setting filters and parameters, running the analysis, and reviewing the results. To facilitate these operations, the package provides \texttt{"CnvGSAInput"}, an S4 class acting as a simple container data structure with slots for each required input data structure:
 
 <<workflow.outline.1>>=
 library("cnvGSA")
@@ -167,11 +167,11 @@ Its elements are as follows:
 	\item{
 		\texttt{\$cnv} - A data frame containing the CNVs. Each row contains data for one CNV:
 		\begin{itemize}[label=$\circ$]\setlength{\itemsep}{-1mm}
-			\item \texttt{SampleID} - ID assigned to the subject's DNA sample in which the CNV was found. The values here should match the corresponding values in the \texttt{\$s2class} data frame (see below).
+			\item \texttt{SampleID} - ID assigned to the subject's DNA sample in which the CNV was found. The values here should match the corresponding values in the \texttt{\$s2class} data frame (see below). It is assumed that the correspondence for each is always 1-to-1 with a subject.
 			\item \texttt{Chr} - Chromosome on which the CNV is located.
 			\item \texttt{Coord\_i} - Start position of the CNV on the chromosome.
 			\item \texttt{Coord\_f} - End position of the CNV on the chromosome.
-			\item \texttt{Type} - CNV type (typically \texttt{"DEL"} or \texttt{"DUP"}).
+			\item \texttt{Type} - CNV type (typically \texttt{"DEL"} or \texttt{"DUP"}, but can be any other label indicating deletions and gains).
 			\item \texttt{Genes} - Genes affected by the CNV, stored in a delimited format inside a character string; e.g. \texttt{"54777;255352;84435"} for semicolon-delimited EntrezGene identifiers. (We recommend using this ID system -- and in any case the example data in this vignette follows it.) CNVs that are not genic should have an empty string (i.e. \texttt{""}) in this column.
 			\item \texttt{CnvID} - ID assigned to the CNV. (Note that this is also of type \texttt{character}.)
 		\end{itemize}
@@ -209,7 +209,7 @@ Its elements are as follows:
 \subsubsection{Loading \texttt{cnvData} from files}
 \label{LoadingCnvDataFromFiles}
 
-The package provides functions for importing data from files into the various elements of the \texttt{cnvData} structure.
+The package provides functions for importing data from files into the particular sub-objects of the \texttt{cnvData} structure.
 
 \begin{itemize}
 	\item{
@@ -242,7 +242,7 @@ Notice that the \texttt{Genes} column is empty. To load this column, use \texttt
 	}
 \end{itemize}
 
-The \texttt{cnvGSAdata} package contains a pair of GFF files that can be used to load the \texttt{genemap} data frame. Shown below is the code for building this data frame from the file containing exon coordinates (note that the runtime of \texttt{getCnvGenes()} may be on the order of 10-20 minutes for a full lookup of CNV genes using these examples):
+The \texttt{cnvGSAdata} package contains a pair of GFF files that can be used to load the \texttt{genemap} data frame; one contains transcript coordinates and the other contains exon coordinates. The former can be used to map CNVs by the ``overlap-transcript'' rule and the latter by the ``overlap-exon'' rule (the latter is more stringent). Shown below is the code for building this data frame from the file containing exon coordinates (note that the runtime of \texttt{getCnvGenes()} may be on the order of 10-20 minutes for a full lookup of CNV genes using these examples):
 
 <<Loading.cnvData.from.files.2,eval=FALSE>>=
 genemapFile <- system.file(
@@ -402,7 +402,7 @@ Note that the annotations are stored in the intermediate list \texttt{\$ann}. It
 
 These two vectors can be loaded quickly and easily using the \texttt{org.Hs.eg.db} Bioconductor package, e.g. as in following code:
 
-<<Loading.annotations.from.org.Hs.eg.db>>=
+<<Loading.annotations.from.org.Hs.eg.db,eval=FALSE>>=
 library( "org.Hs.eg.db" )
 
 ann <- list( gene2sy = character(0), gene2name = character(0) )
@@ -464,7 +464,7 @@ The parameters are as follows:
 
 \begin{itemize}
 	\item{
-		\texttt{grandtotals\_mode} - Used to modify the grand totals in the FET; should be set depending on the results of the burden analysis. Possible values are:
+		\texttt{grandtotals\_mode} - Used to modify the grand totals in the FET. In the presence of significantly higher burden in genic CNVs (see sample burden analysis (section \ref{BurdenAnalysis}) -- \texttt{GenCNV\_N} and \texttt{Gene\_N\_Tot} columns), setting this parameter to ``\texttt{cnvGen}'' will minimize the effect of higher burden on the gene-set analysis results. Note that excessive burden on case may produce unspecific gene-set results. Possible values are:
 		\begin{itemize}[label=$\circ$]\setlength{\itemsep}{-1mm}
 			\item \texttt{"all"} - Produce totals using all samples in the study
 			\item \texttt{"cnv"} - Produce totals using filtered samples hit by at least one variant
@@ -472,11 +472,13 @@ The parameters are as follows:
 		\end{itemize}
 	}
 	\item \texttt{sample\_classes} - The sample classes, e.g. \texttt{"case"} and \texttt{"ctrl"}.
-	\item \texttt{fdr\_iter} - The number of iterations to perform in the empirical FDR (False Discovery Rate) estimation done by randomizing sample class (i.e. case, control) assignments. (Note: larger gene-sets have more statistical power; this can be taken into account by separately testing gene-sets with different sizes.)
-	\item \texttt{extended\_report} - The number of gene-sets for which the extended report will be generated. (The extended report is the `\texttt{extended}' structure in the output; see section \ref{EnrichmentResults}.)
+	\item \texttt{fdr\_iter} - The number of iterations to perform in the empirical FDR (False Discovery Rate) estimation done by randomizing sample class (i.e. case, control) assignments.
+	\item \texttt{extended\_report} - The number of gene-sets for which the extended report will be generated. (The extended report is the `\texttt{enrRes\$extended}' structure in the output; see section \ref{EnrichmentResults}.)
 	\item \texttt{filters} - A list of parameters for filtering the CNVs (see section \ref{LoadingCnvData}).
-	\item \texttt{boxplot\_PDFs} - Boolean indicating whether or not to produce PDFs containing boxplots of the burden statistics (cf. section \ref{BurdenAnalysis}).
+	\item \texttt{boxplot\_PDFs} - Boolean indicating whether or not to produce PDFs containing boxplots of the statistics for the burden analysis on samples (cf. section \ref{BurdenAnalysis}).
 \end{itemize}
+
+{\bf Note:} larger gene-sets have more statistical power; this can be taken into account by separately testing gene-sets with different sizes.
 
 \subsection{Loading test parameters from a file}
 \label{LoadingTestParametersFromFile}
@@ -563,7 +565,7 @@ output <- cnvGSAFisher( input )
 \subsection{Loading the data and running the association test}
 \label{FullWorklfowExampleLoadingAndRunning}
 
-The following code performs an analysis of ~5500 CNVs against ~3700 gene-sets using an \texttt{fdr\_iter} of 1000. The CNVs are rare CNVs from ASD consortium data (Pinto et al., Nature 2010 \cite{pinto2010}) and the gene-sets are a combination of those from the Gene Ontology, KEGG, Biocarta, Reactome, and PFAM (see section \ref{LoadingGeneSets}).
+The following code performs an analysis of approx. 5500 CNVs from 2000 subjects against approx. 3700 gene-sets using an \texttt{fdr\_iter} of 1000. The CNV dataset consists of rare CNVs as described in Pinto et al., Nature 2010 \cite{pinto2010}, and the gene-sets are a collection imported from the Gene Ontology, KEGG, Biocarta, Reactome, and PFAM (see section \ref{LoadingGeneSets}).
 
 \begin{verbatim}
 library( "cnvGSA" )
@@ -677,8 +679,8 @@ save( output, file = "cnvGSA_output_example.RData" )
 \subsection{Reviewing the results}
 \label{FullWorkflowExampleReviewingTheResults}
 
-(Note: Since the runtime for the full workflow example above, with \texttt{fdr\_iter} of 1000, may take on the order of one hour or more on a modern workstation (cf. section \ref{RunningAssociationTest}), we have included the saved output in the companion data package as shown in the workflow outline section.)
-
+(Note: Since the runtime for the full workflow example above, with \texttt{fdr\_iter} of 1000, may take on the order of one hour or more on a modern workstation (cf. section \ref{RunningAssociationTest}), we have included the saved output in the companion data package as shown in the workflow outline section.)\\
+\\
 As stated in the workflow outline, the output object is a simple S4 class containing a slot for each output data structure:
 
 <<slotNames.output>>=
@@ -711,7 +713,7 @@ str( enrRes(output), max.level=1 )
 %  .. [list output truncated]
 %\end{verbatim}
 
-The data frames \texttt{basic} and \texttt{extended} contain the actual enrichment results. \texttt{basic} has the results for all affected gene-sets, whereas \texttt{extended} has several additional columns of information but only for the most highly enriched gene-sets (the number of which can be set by the \texttt{extended\_report} parameter; see section \ref{ConfiguringTestParameters}). \texttt{totals} simply shows the total number of case and control samples. \texttt{gstables} contains a list of tables with CNV and gene information specific to each gene-set (this is discussed in more detail in the following section).\\
+The data frames \texttt{basic} and \texttt{extended} contain the actual enrichment results. \texttt{basic} has the results for all tested gene-sets, whereas \texttt{extended} has several additional columns of information but only for the most significant gene-sets (the number of which can be set by the \texttt{extended\_report} parameter; see section \ref{ConfiguringTestParameters}). \texttt{totals} simply shows the total number of case and control samples (in accordance with the ``\texttt{totals}'' option set in the parameters). \texttt{gstables} contains a list of tables with CNV and gene information specific to each gene-set (this is discussed in more detail in the following section).\\
 \\
 The structure of \texttt{extended} is shown in the listing below (\texttt{basic} has the same structure but only goes up to \texttt{FET\_permFDR}):
 
@@ -740,11 +742,9 @@ str( enrRes(output)$extended, max.level=1, strict.width="cut" )
 % $ FET_bhFDR          : num  0.00669 0.01188 0.01188 0.01188 0.01188 ...
 % $ FET_permFDR        : num  0 0.0015 0.001 0.001 0.000833 ...
 % $ Support_size_case  : int  13 30 27 1 25 25 18 6 17 23 ...
-% $ Support_ratio_case : num  2.23 1.277 1.149 0.748 1.236 ...
 % $ Support_geneid_case: chr  "4867;9576;64518;2782;83659;65217;221322;164714;5..
 % $ Support_symbol_case: chr  "NPHP1;SPAG6;TEKT3;GNB1;TEKT1;PCDH15;C6orf170;TTL..
 % $ Support_size_ctrl  : int  4 12 3 1 2 2 3 3 3 2 ...
-% $ Support_ratio_ctrl : num  0.843 0.628 0.157 0.919 0.121 ...
 % $ Support_geneid_ctrl: chr  "51626;51057;27241;84075" "152273;1287;775;57689;..
 % $ Support_symbol_ctrl: chr  "DYNC2LI1;C2orf86;BBS9;FSCB" "FGD5;COL4A5;CACNA1C..
 % $ case_SampleID      : Factor w/ 157 levels "1030_3;1128_3;1199_3;1265_8;1303..
@@ -762,13 +762,11 @@ Each row contains results for a single gene-set. The columns are as follows:
 \begin{itemize}\setlength{\itemsep}{-1mm}
 	\item \texttt{GsID}, \texttt{GsName}, and \texttt{GsSize} show the gene-set's identifier, name, and number of member genes respectively.
 	\item \texttt{case\_N}/\texttt{ctrl\_N} and \texttt{case\_\%}/\texttt{ctrl\_\%} show the number and percentage of case and control samples hitting the gene-set.
-	\item \texttt{FET\_pv}, \texttt{FET\_OR}, \texttt{FET\_ORconfLow}, and \texttt{FET\_ORconfHigh} show the p-value, odds ratio, and low and high bounds of the confidence interval for the {\bf one-sided} Fisher Exact Test of the gene-set.
-	\item \texttt{FET2s\_pv}, \texttt{FET2s\_OR}, \texttt{FET2s\_ORconfLow}, and \texttt{FET2s\_ORconfHigh} show the p-value, odds ratio, and low and high bounds of the confidence interval for the {\bf two-sided} Fisher Exact Test of the gene-set.
+	\item \texttt{FET\_pv}, \texttt{FET\_OR}, \texttt{FET\_ORconfLow}, and \texttt{FET\_ORconfHigh} show the gene-set p-value, odds ratio, and low and high bounds of the confidence interval for the {\bf one-sided} Fisher Exact Test of the gene-set.
+	\item \texttt{FET2s\_pv}, \texttt{FET2s\_OR}, \texttt{FET2s\_ORconfLow}, and \texttt{FET2s\_ORconfHigh} show the gene-set p-value, odds ratio, and low and high bounds of the confidence interval for the {\bf two-sided} Fisher Exact Test of the gene-set.
 	\item \texttt{FET\_bhFDR} and \texttt{FET\_permFDR} show the Benjamini-Hochberg corrected p-value and the permutation-based FDR, respectively.
-	\item \texttt{Support\_size\_case}, \texttt{Support\_ratio\_case}, \texttt{Support\_geneid\_case}, and\\
-	\texttt{Support\_symbol\_case} show the number, ratio, IDs, and symbols of the ``case support genes'' involving only the genes from this gene-set. ``Case support genes'' are defined as those genes whose counts (over all samples in the study) are greater in cases than in controls. \texttt{Support\_ratio\_case} accordingly shows the ratio of (the number of case support genes for this gene-set in particular) to (the total number of case support genes over all gene-sets in the study). (The set of case support genes over all gene-sets is provided in \texttt{geneData} in the output; see the description a little further down in this section.)
-	\item \texttt{Support\_size\_ctrl}, \texttt{Support\_ratio\_ctrl}, \texttt{Support\_geneid\_ctrl}, and\\
-	\texttt{Support\_symbol\_ctrl} show the corresponding ``control support genes'' (i.e. same as above but with genes whose counts are greater in controls than in cases).
+	\item \texttt{Support\_size\_case}, \texttt{Support\_geneid\_case}, and	\texttt{Support\_symbol\_case} show the number, IDs, and symbols of the ``case support genes'' involving only the genes from this gene-set. ``Case support genes'' are defined as those genes whose counts are greater in cases than in controls for the given gene-set. The set of case support genes over all genes is provided in \texttt{geneData} in the output; see the description a little further down in this section.)
+	\item \texttt{Support\_size\_ctrl}, \texttt{Support\_geneid\_ctrl}, and	\texttt{Support\_symbol\_ctrl} show the corresponding ``control support genes'' (i.e. same as above but with genes whose counts are greater in controls than in cases).
 	\item \texttt{FETpv\_remTop} and \texttt{FETfdr\_remTop} show the exact and permuted p-values when the top associated gene in the gene-set is removed.
 	\item \texttt{Topgene} shows the top associated gene in the gene-set.
 \end{itemize}
@@ -776,18 +774,25 @@ Each row contains results for a single gene-set. The columns are as follows:
 As mentioned above, the \texttt{basic} data frame contains only those columns going up to \texttt{FET\_permFDR} -- but for all gene-sets in the study. This is sufficient to identify those gene-sets passing the FDR threshold:
 
 <<FET.permFDR>>=
-which( enrRes(output)$basic$FET_permFDR <= 0.01 )
+1 : max( which( enrRes(output)$basic$FET_permFDR <= 0.01 ) )
 @
 %\begin{verbatim}
 %> which( enrRes(output)$basic$FET_permFDR <= 0.01 )
 % [1]  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20
 %\end{verbatim}
 
-Note that although the permutation FDR is not necessarily monotonic (that is, when the gene-sets are ranked in order of \texttt{FET\_pv} -- as is the case in the output), this particular output lists all of the top 20 gene-sets as having passed the threshold. Taking a closer look now at \texttt{extended} to see their p-values:
+(Note that \texttt{max} is used since the permutation FDR is not necessarily monotonic when the gene-sets are ranked in order of \texttt{FET\_pv}.) Taking a closer look now at \texttt{extended} to see their p-values:
 
+{\small
+<<top20.setwidth,echo=FALSE>>=
+options(width=100)
+@
 <<top20>>=
 head( enrRes(output)$extended[ , c("FET_pv","FET_OR","FET_bhFDR","FET_permFDR",
-"Topgene")], 20 )
+"Topgene", "FETpv_remTop")], 20 )
+@
+<<top20.clearwidth,echo=FALSE>>=
+options(width=80)
 @
 %$	%% extra dollar sign as workaround for Geany's buggy syntax colouring
 
@@ -823,6 +828,7 @@ The gene-set association p-values above look promising. Note however that just f
 <<enrRes.geneData>>=
 str( geneData(output), strict.width="wrap" )
 @
+}
 
 %\begin{verbatim}
 %> str( geneData(output), strict.width="wrap" )
@@ -892,8 +898,13 @@ head( geneData(output)$gcounts[ , -3] )
 %\end{verbatim}
 %$	%% extra dollar sign as workaround for Geany's buggy syntax colouring
 
-Comparing this to the 20 gene-sets shown earlier and keeping in mind that the \texttt{gcounts} table is sorted by p-value, it appears that CROCC may a concern. In general, if a gene has a strong association on its own (or if it has a previously known association), it can be removed from the test by including its gene ID in the \texttt{rem\_genes} parameter in the input (see section \ref{ConfiguringTestParameters}).
-
+CROCC has a nominally significant association p-value, as displayed by the gcounts table. CROCC is also the main gene driving the significant association of several gene-sets (\texttt{FETpv\_remTop} has significant drops when CROCC is the top gene). In cases such as these, it is usually good to consider the following:\\
+\\
+i) Make sure the nominally associated gene (CROCC) is really such and that the signal is not an artifact (e.g. the gene may map to an array region that's prone to false positives); and\\
+\\
+ii) This test is designed for rare CNV data-sets which hardly have significantly associated genes. Significantly associated genes, even if truthful, can produce gene-set association with little contribution from other genes. Gene-sets with \texttt{log10(FETpv\_remTop / FET\_pv) >= 3} should be interpreted very carefully.\\
+\\
+In the specific case of the Pinto et al 2010 study, CROCC and HLA-B were deemed potential false positives, so their variants were removed. (In general, specific genes can be removed by including their gene IDs in the \texttt{rem\_genes} parameter in the input; see section \ref{ConfiguringTestParameters}.)
 
 \subsubsection{Detailed analysis of gene-set associations}
 
@@ -924,8 +935,10 @@ The structure of the data frame for a particular gene-set is similar to that of 
 
 {\scriptsize
 
-<<gstables.dataframe>>=
+<<gstables.dataframe.setwidth,echo=FALSE>>=
 options(width=160)
+@
+<<gstables.dataframe>>=
 enrRes(output)$gstables[[2]][10:19,]
 @
 %$	%% extra dollar sign as workaround for Geany's buggy syntax colouring
@@ -956,7 +969,7 @@ Examining the data frame for a particular gene-set may reveal that its associati
 \subsubsection{Burden analysis}
 \label{BurdenAnalysis}
 
-The enrichment results for a rare CNV/gene-set association test will draw the strongest conclusions when the case and control data are closely matched -- i.e. having similar overall CNV and CNV-gene profiles -- so that associations arising from the remaining differences can indeed be taken as valid rather than artifacts of the input data. The ``burden'' statistics in \texttt{burdenGs} and \texttt{burdenSample}, described below, are provided for this purpose.\\
+The enrichment results for a rare CNV/gene-set association test will draw the strongest conclusions when the case and control data are closely matched -- i.e. having similar overall CNV and CNV-gene profiles -- so that associations arising from the remaining differences can indeed be taken as valid rather than artifacts of the input data. The ``burden'' statistics in \texttt{burdenGs} and \texttt{burdenSample}, described below, are provided for this purpose. In particular, they will display if cases and controls have different CNV length, CNV number, and CNV gene number.\\
 \\
 Taking a look thus at the \texttt{burdenSample} statistics:
 
@@ -1062,16 +1075,18 @@ The first table shows basic statistics for all, case, and control samples:
 
 As with \texttt{burdenSample}, the values in this first table show that the case and control data sets in this example are appropriately matched.\\
 \\
-The second table above shows statistics for all, case, and control (sample, gene-set) \emph{pairs} and requires some explanation. A ``(sample, gene-set) pair'' in the context of these statistics is a cell in the initial matrix of perturbation counts formed by tabulating all gene-sets against all samples, where the perturbation count is the number of genes in the gene-set that are hit by CNVs in the sample. Nonzero values in this initial matrix are then truncated into a ``perturbation score'' (i.e. values greater than 1 are set to 1); this matrix of perturbation scores is the one, as described in the Overview section, that is in turn used to compute the contingency tables used in the Fisher Exact Test for each gene-set. The rows in the second table above are thus taken from the \emph{initial} matrix -- as follows:
+The second table above shows statistics for all, case, and control (sample, gene-set) \emph{pairs} and requires some explanation. A ``(sample, gene-set) pair'' in the context of these statistics is a cell in the initial matrix of perturbation counts formed by tabulating all gene-sets against all samples, where the perturbation count is the number of genes in the gene-set that are hit by CNVs in the sample. Nonzero values in this initial matrix are then truncated to 1; this matrix of binary perturbation counts is, as described in the Overview section, used to compute the Fisher Exact Test contingency tables. The rows in the second table above are thus taken from the \emph{initial} matrix -- as follows:
 
 \begin{itemize}\setlength{\itemsep}{-1mm}
 	\item Number and percentage of (sample, gene-set) pairs having at least one gene of interest hit by CNVs in the sample. ``\texttt{(on all pairs)}'' indicates that the percentage is taken out of all cells in the matrix.
 	\item Number and percentage of (sample, gene-set) pairs having at least 2 / at least 3 genes of interest hit by CNVs in the sample. ``\texttt{(on positive pairs)}'' indicates that the percentage is taken out of all \emph{nonzero} cells in the matrix.
-	\item Number and percentage of (sample, gene-set) pairs having at least 2 CNVs in the sample.
-	\item Number and percetnage of (sample, gene-set) pairs having at least 2 CNVs in the sample -- where the CNVs are distinct chromosomes.
+	\item Number and percentage of (sample, gene-set) pairs having at least 2 CNVs.
+	\item Number and percentage of (sample, gene-set) pairs having at least 2 CNVs on distinct chromosomes.
 \end{itemize}
 
-The rationale for these statistics is twofold: on the one hand, it is another check to ensure that the case and control data sets are well-matched; on the other hand, if it turns out that a substantial number of CNVs are hitting more than one gene-set, it may be an indication to apply a more sophisticated association test (such as the trend test). In the \texttt{burdenGs} output above, the statistics again show that the cases and controls are well-matched, and the percentage of CNVs hitting more than one gene-set is evidently low (around 6\%). It should be noted that the size of the gene-sets will affect these statistics (larger gene-sets will increase the likelihood that the CNVs are hitting genes from more than one gene-set).
+The rationale for these statistics is twofold: on the one hand, it is another check to ensure that the case and control data sets are well-matched; on the other hand, if it turns out that a substantial number of CNVs are hitting more than one gene-set, it may be an indication to apply a more sophisticated association test (such as the trend test). In the \texttt{burdenGs} output above, the statistics again show that the cases and controls are well-matched, and the percentage of CNVs hitting more than one gene-set is evidently low (around 6\%).\\
+\\
+It should be noted that the size of the gene-sets will affect these statistics (larger gene-sets will increase the likelihood that the CNVs are hitting genes from more than one gene-set). The stringency in the definition of ``rare'' CNV is another important factor.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1090,7 +1105,7 @@ The rationale for these statistics is twofold: on the one hand, it is another ch
 
 \bibitem{lionel2011} A. C. Lionel et al. Rare Copy Number Variation Discovery and Cross-Disorder Comparisons Identify Risk Genes for ADHD. {\it Sci. Transl. Med.} {\bf 3}, 95ra75 (2011).
 
-\bibitem{marshall2008} C. R. Marshall et al. Structural Variation of Chromosomes in Autism Spectrum Disorder. {\it Am J Hum Genet.} 2008 Feb 8; {\bf 82}(2): 477--488..
+\bibitem{marshall2008} C. R. Marshall et al. Structural Variation of Chromosomes in Autism Spectrum Disorder. {\it Am J Hum Genet.} 2008 Feb 8; {\bf 82}(2): 477--488.
 \end{thebibliography}
 
 
