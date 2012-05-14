@@ -18,7 +18,7 @@ F.BurdenSample <- function (cnvData.ls, assTestPar.ls)
 	# - statistics using all samples with at least one genic CNV
 	# - proportions of samples with at least one CNV but no genic ones
 
-	## Which CNv map to gene-set genes?
+	## Which CNV map to gene-set genes?
 	## cnvData.ls$full$GsGeneBn <- 0
 	## cnvData.ls$full$GsGeneBn[! is.na (cnvData.ls$full$GsID)] <- 1
 
@@ -40,6 +40,7 @@ F.BurdenSample <- function (cnvData.ls, assTestPar.ls)
 
 	# Make stats by sample, for the two classes separately
 	stat.ls <- lapply (cnv.ls, f.burden_sample_stats)
+	burdSampleStat.ls$stat.ls <- stat.ls	## Needed for f.lrm (the logistic test); will be NULLed afterward
 
 	# Make summaries of the stats by sample, for the two classes separately
 	summary.ls <- lapply (stat.ls, f.burden_sample_summaries)
@@ -54,6 +55,9 @@ F.BurdenSample <- function (cnvData.ls, assTestPar.ls)
 
 	burdSampleStat.ls$SamplesCNV <- list (summary = summary.ls, pvalue = pv.mx, no_cnv_proportion = prop.ls)
 
+#
+# RZ 2012-04-18: The following was commented out ahead of the original submission to Bioconductor (i.e. cnvGSA_1.0.0)
+#
 #	# REPORT_2
 #
 #	# Export filtered cnv and sample data from $full
@@ -79,7 +83,7 @@ F.BurdenSample <- function (cnvData.ls, assTestPar.ls)
 #	
 #	burdSampleStat.ls$SamplesGenicCNV <- list (summary = summary.ls, pvalue = pv.mx, no_cnv_proportion = prop.ls)
 	
-	# RETURN	
+	# RETURN
 	
 	return (burdSampleStat.ls)
 	}
@@ -100,6 +104,10 @@ f.check_cnv_postproc <- function (cnvData.ls)
 	}	
 	
 f.burden_sample_stats <- function (cnv.df)
+	#
+	# N.B.: f.add_lrmstats (i.e. the subroutine that does the logistic regression)
+	#       depends on the output of this function
+	#
 	{
 	# Statistics by Sample
 	stat.ls <- list ()
@@ -128,8 +136,38 @@ f.burden_sample_stats <- function (cnv.df)
 
 	f.setStatName <- function (stat.df)
 		{names (stat.df)[2] <- "Stat"; return (stat.df)}
-
 	stat.ls <- lapply (stat.ls, f.setStatName)
+
+	### TODO: The output now looks like:
+	### 
+	### List of 2
+	###  $ case:List of 9
+	###   ..$ LogLenMean   :'data.frame':       692 obs. of  2 variables:
+	###   .. ..$ SampleID: chr [1:692] "1020_4" "1030_3" "1045_3" "1050_3" ...
+	###   .. ..$ Stat    : num [1:692] 4.55 5.27 4.51 4.61 5.46 ...
+	###   ..$ LogLenTot    :'data.frame':       692 obs. of  2 variables:
+	###   .. ..$ SampleID: chr [1:692] "1020_4" "1030_3" "1045_3" "1050_3" ...
+	###   .. ..$ Stat    : num [1:692] 4.55 5.57 4.51 4.61 5.94 ...
+	###   ..$ CNV_N        :'data.frame':       692 obs. of  2 variables:
+	###   .. ..$ SampleID: chr [1:692] "1020_4" "1030_3" "1045_3" "1050_3" ...
+	###   .. ..$ Stat    : int [1:692] 1 2 1 1 3 2 2 1 2 4 ...
+	###   [...]
+	###  $ ctrl:List of 9
+	###   ..$ LogLenMean   :'data.frame':       880 obs. of  2 variables:
+	###   .. ..$ SampleID: chr [1:880] "B100121_1007854727" "B100331_1007873991" "B101..
+	###   .. ..$ Stat    : num [1:880] 5.12 4.77 4.88 4.86 4.72 ...
+	###   ..$ LogLenTot    :'data.frame':       880 obs. of  2 variables:
+	###   .. ..$ SampleID: chr [1:880] "B100121_1007854727" "B100331_1007873991" "B101..
+	###   .. ..$ Stat    : num [1:880] 5.12 5.07 5.35 5.16 5.02 ...
+	###   ..$ CNV_N        :'data.frame':       880 obs. of  2 variables:
+	###   .. ..$ SampleID: chr [1:880] "B100121_1007854727" "B100331_1007873991" "B101..
+	###   .. ..$ Stat    : int [1:880] 1 2 3 2 2 3 3 3 1 4 ...
+	###   [...]
+	###
+	### ...
+	###
+	### Rebuild it so that $case and $ctrl are data frames with SampleID as rows
+	### and the stats as cols, as it should be...
 	
 	return (stat.ls)
 	}

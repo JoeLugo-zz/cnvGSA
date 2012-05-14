@@ -8,6 +8,7 @@ readParamsRFile <- function( filename )
 	##     sample_classes   <- c( "case", "ctrl" )
 	##     fdr_iter         <- 2
 	##     extended_report  <- 200
+	##     do_logistic      <- "full"
 	##     boxplot_PDFs     <- FALSE
 	##
 	##     # cnvData$filters parameters
@@ -23,6 +24,7 @@ readParamsRFile <- function( filename )
 	sample_classes <- NULL
 	fdr_iter <- NULL
 	extended_report <- NULL
+	do_logistic <- NULL
 	boxplot_PDFs <- NULL
 	limits_type <- NULL
 	Type <- NULL
@@ -37,6 +39,7 @@ readParamsRFile <- function( filename )
 		sample_classes = sample_classes,
 		fdr_iter = fdr_iter,
 		extended_report = extended_report,
+		do_logistic = do_logistic,
 		boxplot_PDFs = boxplot_PDFs
 	)
 	

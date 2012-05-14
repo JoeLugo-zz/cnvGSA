@@ -34,3 +34,7 @@ exportMethods(
 	burdenGs,
 	enrRes
 )
+
+## Leave the following uncommented for debugging only
+#exportPattern(".")
+

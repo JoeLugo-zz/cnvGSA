@@ -4,13 +4,22 @@
 
 # adds additional data to enrichment results
 # includes additional tests
-F.AddEnr <- function (enrRes.ls, cnvData.ls, gsData.ls, geneData.ls, addEnrPar.ls, assTestPar.ls)
+F.AddEnr <- function (enrRes.ls, cnvData.ls, gsData.ls, geneData.ls, burdenSample.ls, assTestPar.ls, addEnrPar.ls)
 	{
 	addEnrPar.ls <- f.complete_enrpar (addEnrPar.ls)
-		
-	## enr.df <- subset (enrRes.ls$basic, subset = FET_fdr <= addEnrPar.ls$fdr_thr)
-	enr.df <- enrRes.ls$basic[1: addEnrPar.ls$sel_n, ]
-		
+	
+	# Initialize enr.df using only the top 200 (or whatever addEnrPar.ls$sel_n is set to) gene-sets
+	enr.df <- enrRes.ls$basic[ (1: min (nrow (enrRes.ls$basic), addEnrPar.ls$sel_n)), ]
+
+	# Logistic regression
+	if( !is.null(addEnrPar.ls$do_logistic) ) {
+		if( addEnrPar.ls$do_logistic == "extended" ) {
+			cat( "Logistic regression (for only those gene-sets in the extended report)..." )
+			enr.df <- f.add_lrmstats( enr.df, cnvData.ls, burdenSample.ls, addEnrPar.ls )
+			cat( "done\n" )
+		}
+	}
+
 	# add support data
 	enr.df <- f.add_support(
 		enr.df,
@@ -70,11 +79,11 @@ f.add_support <- function (enr.df, cnvData.ls, gsData.ls, geneData.ls, class.ch 
 #	enr.df$Support_geneid <- sapply (gs_supp_id.ls, paste, collapse = cnvData.ls$gsep)
 #	enr.df$Support_symbol <- sapply (gs_supp_sy.ls, paste, collapse = cnvData.ls$gsep)
 	support_size_class <- paste( sep="", "Support_size_", class.ch )
-	support_ratio_class <- paste( sep="", "Support_ratio_", class.ch )
+#	support_ratio_class <- paste( sep="", "Support_ratio_", class.ch )		## 2012-04-25 RZ: Removed as per vignette corrections
 	support_geneid_class <- paste( sep="", "Support_geneid_", class.ch )
 	support_symbol_class <- paste( sep="", "Support_symbol_", class.ch )
 	enr.df[[ support_size_class ]] <- sapply (gs_supp_id.ls, length)
-	enr.df[[ support_ratio_class ]] <- (enr.df[[support_size_class]] / enr.df$GsSize) / exp.n
+#	enr.df[[ support_ratio_class ]] <- (enr.df[[support_size_class]] / enr.df$GsSize) / exp.n	## 2012-04-25 RZ: Removed as per vignette corrections
 	enr.df[[ support_geneid_class ]] <- sapply (gs_supp_id.ls, paste, collapse = cnvData.ls$gsep)
 	enr.df[[ support_symbol_class ]] <- sapply (gs_supp_sy.ls, paste, collapse = cnvData.ls$gsep)
 		
@@ -178,6 +187,208 @@ f.rem_top_fdr_unit <- function (pvalue.n, enr.df)
 	fdr.n <- enr.df$FET_fdr[fdr.ix]
 
 	return (fdr.n)
+	}
+
+# logistic regression test
+f.add_lrmstats <- function (enr.df, cnvData.ls, burdenSample.ls, addEnrPar.ls)
+	{
+
+	# 1. generate the following columns (LogLenTot and GsGene_N_Tot obtained from F.BurdenSample)
+	SampleID <- c (
+		burdenSample.ls$stat.ls[[1]]$LogLenMean$SampleID,	# Using [[1]] and [[2]] here since the stat.ls list elements corresponding to the case and ctrl classes
+		burdenSample.ls$stat.ls[[2]]$LogLenMean$SampleID	# can have names other than "case" and "ctrl"; cf. F.BurdenSample
+	)
+	Class <- c (
+		rep (1, length (burdenSample.ls$stat.ls[[1]]$LogLenMean$SampleID)),	# brglm requires y-values to be between 0 and 1, hence 1=case, 0=ctrl
+		rep (0, length (burdenSample.ls$stat.ls[[2]]$LogLenMean$SampleID))
+			### TODO: check this
+	)
+	LogLenTot <- c (
+		burdenSample.ls$stat.ls[[1]]$LogLenTot$Stat,
+		burdenSample.ls$stat.ls[[2]]$LogLenTot$Stat
+	)
+	GsGene_N_Tot <- c (
+		burdenSample.ls$stat.ls[[1]]$GsGene_N_Tot$Stat,
+		burdenSample.ls$stat.ls[[2]]$GsGene_N_Tot$Stat
+	)
+	data.df <- data.frame (SampleID, Class, LogLenTot, GsGene_N_Tot)
+	
+	# Ensure that the order of data in the above columns corresponds exactly to that of cnvData.ls$tab$gen
+	# (necessary because f.lrm_unit puts columns from cnvData.ls$tab$gen side-by-side with data.df)
+	SampleID.df <- data.frame( SampleID=rownames(cnvData.ls$tab$gen) )
+	data.df <- merge( SampleID.df, data.df )
+
+	# Perform the logistic regression on each gene-set
+	stats.mx <- t (sapply (
+		1:length(enr.df$GsID),
+		f.lrm_unit,
+		enr.df$GsID,
+		cnvData.ls,
+		data.df
+	))
+	
+	# Add Benjamini-Hochberg corrected p-values
+	stats.mx[,"LM1_Dmod_bhPv"] <- p.adjust (stats.mx[,"LM1_Dmod_Pv"], method = "BH")
+	stats.mx[,"LM2_Dmod_bhPv"] <- p.adjust (stats.mx[,"LM2_Dmod_Pv"], method = "BH")
+		
+	return (cbind (enr.df, stats.mx))
+	}
+
+f.lrm_unit <- function (gs.n, GsID.chv, cnvData.ls, data.df)
+	{
+
+	### TODO: Delete Case_MeanGsN, Ctrl_MeanGsN, Oddr_MeanGsN, Case%_GsN>0, trl%_GsN>0, 
+	### Not0Oddr columns and code after confirming that they are no longer necessary
+
+	# Progress indicator
+	if (gs.n %% 25 == 0) {cat (gs.n); cat ("; ")}
+
+	stats.names <- c (
+
+		"LM1_GsN_Sign",
+		"LM1_GsN_Pv",
+		"LM1_Convg",
+#		"LM1_Case_MeanGsN",
+#		"LM1_Ctrl_MeanGsN",
+#		"LM1_Oddr_MeanGsN",
+#		"LM1_Case%_GsN>0",
+#		"LM1_Ctrl%_GsN>0",
+#		"LM1_Not0Oddr",
+		"LM1_Dmod_Pv",
+		"LM1_Dmod_bhPv",	# Placeholder for Benjamini-Hochberg corrected p-value
+		"LM1_PredOddr_full",
+		"LM1_PredOddr_base",
+
+		"LM2_GsN_Sign",
+		"LM2_GsN_Pv",
+		"LM2_Convg",
+#		"LM2_Case_MeanGsN",
+#		"LM2_Ctrl_MeanGsN",
+#		"LM2_Oddr_MeanGsN",
+#		"LM2_Case%_GsN>0",
+#		"LM2_Ctrl%_GsN>0",
+#		"LM2_Not0Oddr",
+		"LM2_Dmod_Pv",
+		"LM2_Dmod_bhPv",	# Placeholder for Benjamini-Hochberg corrected p-value
+		"LM2_PredOddr_full",
+		"LM2_PredOddr_base"
+
+	)
+
+	stats.nv <- as.numeric (rep (NA, length (stats.names)))
+	names (stats.nv) <- stats.names
+
+	# 2-1. for each gene-set, generate gene-set specific data.frame 'data_gsi.df'
+	#      by extracting corresponding line from cnvData.ls$tab$gen for that gene-set.
+	#
+	# data_gsi.df <- data.frame (SampleID, Class, LogLenTot, GsComp_N, Gs_N)
+	# - The SampleIDs should be unique
+	# - GsComp_N = GSGene_N_Tot - Gs_N
+
+	Gs_N <- cnvData.ls$tab$gen[ , GsID.chv[gs.n] ]
+	GsComp_N <- data.df$GsGene_N_Tot - Gs_N
+	data_gsi.df <- data.frame (
+		SampleID     = data.df$SampleID,
+		Class        = data.df$Class,
+		LogLenTot    = data.df$LogLenTot,
+		GsGene_N_Tot = data.df$GsGene_N_Tot,
+		GsComp_N,
+		Gs_N,
+		stringsAsFactors=FALSE	### TODO: stringsAsFactors=FALSE: necessary or not?
+	)
+
+	# -- logistic model 1 --
+
+	# 2-2. fit logistic models
+
+	full1.brglm <- brglm (Class ~ LogLenTot + GsComp_N + Gs_N, data = data_gsi.df, family = binomial (link = "logit"))
+	base1.brglm <- brglm (Class ~ LogLenTot + GsComp_N, data = data_gsi.df, family = binomial (link = "logit"))
+
+	# 2-3. generate/extract statistics
+	
+	full1.brgsm <- summary (full1.brglm)
+	base1.brgsm <- summary (base1.brglm)
+		
+	gsn1_info.nv <- f.lrm_unit_getSmInfo (full1.brgsm, "Gs_N")
+
+	# logistic model summaries
+	stats.nv["LM1_GsN_Sign"] <- gsn1_info.nv["sign"]
+	stats.nv["LM1_GsN_Pv"]   <- gsn1_info.nv["pvalue"]
+	stats.nv["LM1_Convg"]    <- full1.brglm$converged
+
+#	gsn_case.nv <- subset (data_gsi.df, subset = Class == 1, select = Gs_N, drop = T)
+#	gsn_ctrl.nv <- subset (data_gsi.df, subset = Class == 0, select = Gs_N, drop = T)
+#	scase.n <- length (gsn_case.nv)
+#	sctrl.n <- length (gsn_ctrl.nv)
+#	stats.nv["LM1_Case_MeanGsN"] <- mean (gsn_case.nv)
+#	stats.nv["LM1_Ctrl_MeanGsN"] <- mean (gsn_ctrl.nv)
+#	stats.nv["LM1_Oddr_MeanGsN"]  <- stats.nv["LM1_Case_MeanGsN"] / stats.nv["LM1_Ctrl_MeanGsN"]
+#	stats.nv["LM1_Case%_GsN>0"] <- sum (gsn_case.nv > 0) / scase.n
+#	stats.nv["LM1_Ctrl%_GsN>0"] <- sum (gsn_case.nv > 0) / sctrl.n
+#	stats.nv["LM1_Not0Oddr"]    <- stats.nv["LM1_Case%_GsN>0"] / stats.nv["LM1_Ctrl%_GsN>0"]
+
+	# comparison of logistic models
+	GsN1.anova <- anova (full1.brglm, base1.brglm, test = "Chisq")
+	dmodpv1.n <- GsN1.anova[["P(>|Chi|)"]][2]
+	stats.nv["LM1_Dmod_Pv"] <- ifelse (is.na (dmodpv1.n), 1, dmodpv1.n)
+
+	# prediction odds ratio (ratio between correct and incorrect predictions)
+	lm1full_p1r1.n <- sum (full1.brglm$linear.predictors[full1.brglm$y == 1] > 0)
+	lm1full_p0r1.n <- sum (full1.brglm$linear.predictors[full1.brglm$y == 1] < 0)
+	lm1full_p0r0.n <- sum (full1.brglm$linear.predictors[full1.brglm$y == 0] < 0)
+	lm1full_p1r0.n <- sum (full1.brglm$linear.predictors[full1.brglm$y == 0] > 0)
+	stats.nv["LM1_PredOddr_full"] <- (lm1full_p1r1.n + lm1full_p0r0.n) / (lm1full_p1r0.n + lm1full_p0r1.n)
+	lm1base_p1r1.n <- sum (base1.brglm$linear.predictors[base1.brglm$y == 1] > 0)
+	lm1base_p0r1.n <- sum (base1.brglm$linear.predictors[base1.brglm$y == 1] < 0)
+	lm1base_p0r0.n <- sum (base1.brglm$linear.predictors[base1.brglm$y == 0] < 0)
+	lm1base_p1r0.n <- sum (base1.brglm$linear.predictors[base1.brglm$y == 0] > 0)
+	stats.nv["LM1_PredOddr_base"] <- (lm1base_p1r1.n + lm1base_p0r0.n) / (lm1base_p1r0.n + lm1base_p0r1.n)
+
+	# -- logistic model 2 --
+
+	full2.brglm <- brglm (Class ~ LogLenTot + GsGene_N_Tot + Gs_N, data = data_gsi.df, family = binomial (link = "logit"))
+	base2.brglm <- brglm (Class ~ LogLenTot + GsGene_N_Tot,        data = data_gsi.df, family = binomial (link = "logit"))
+
+	full2.brgsm <- summary (full2.brglm)
+	base2.brgsm <- summary (base2.brglm)
+		
+	gsn2_info.nv <- f.lrm_unit_getSmInfo (full2.brgsm, "Gs_N")
+	stats.nv["LM2_GsN_Sign"] <- gsn2_info.nv["sign"]
+	stats.nv["LM2_GsN_Pv"]   <- gsn2_info.nv["pvalue"]
+	stats.nv["LM2_Convg"]    <- full2.brglm$converged
+
+	GsN2.anova <- anova (full2.brglm, base2.brglm, test = "Chisq")
+	dmodpv2.n <- GsN2.anova[["P(>|Chi|)"]][2]
+	stats.nv["LM2_Dmod_Pv"] <- ifelse (is.na (dmodpv2.n), 1, dmodpv2.n)
+
+	lm2full_p1r1.n <- sum (full2.brglm$linear.predictors[full2.brglm$y == 1] > 0)
+	lm2full_p0r1.n <- sum (full2.brglm$linear.predictors[full2.brglm$y == 1] < 0)
+	lm2full_p0r0.n <- sum (full2.brglm$linear.predictors[full2.brglm$y == 0] < 0)
+	lm2full_p1r0.n <- sum (full2.brglm$linear.predictors[full2.brglm$y == 0] > 0)
+	stats.nv["LM2_PredOddr_full"] <- (lm2full_p1r1.n + lm2full_p0r0.n) / (lm2full_p1r0.n + lm2full_p0r1.n)
+	lm2base_p1r1.n <- sum (base2.brglm$linear.predictors[base2.brglm$y == 1] > 0)
+	lm2base_p0r1.n <- sum (base2.brglm$linear.predictors[base2.brglm$y == 1] < 0)
+	lm2base_p0r0.n <- sum (base2.brglm$linear.predictors[base2.brglm$y == 0] < 0)
+	lm2base_p1r0.n <- sum (base2.brglm$linear.predictors[base2.brglm$y == 0] > 0)
+	stats.nv["LM2_PredOddr_base"] <- (lm2base_p1r1.n + lm2base_p0r0.n) / (lm2base_p1r0.n + lm2base_p0r1.n)
+
+	return (stats.nv)
+	}
+
+# this function just handles the exception 
+# of missing x coefficient for fit problems
+f.lrm_unit_getSmInfo <- function (main.sm, x.name)
+	{
+	output.nv <- numeric (2)
+	names (output.nv) <- c ("sign", "pvalue")
+
+	coef.mx <- main.sm$coefficients
+
+	x.bn <- x.name %in% rownames (coef.mx)
+	output.nv["sign"] <- ifelse (x.bn, sign (coef.mx[x.name, "Estimate"]), 0)
+	output.nv["pvalue"] <- ifelse (x.bn, coef.mx[x.name, "Pr(>|z|)"], 1)
+	
+	return (output.nv)
 	}
 
 f.add_gstables <- function( enr.df, cnvData, geneData, gsep )

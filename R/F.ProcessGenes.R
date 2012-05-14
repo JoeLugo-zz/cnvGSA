@@ -1,5 +1,5 @@
 
-F.ProcessGenes <- function (cnvData.ls, gsData.ls, assTestPar.ls, geneData.ls)
+F.ProcessGenes <- function (cnvData.ls, gsData.ls, geneData.ls, assTestPar.ls)
 	{
 	f.check_genedata (geneData.ls)
 		

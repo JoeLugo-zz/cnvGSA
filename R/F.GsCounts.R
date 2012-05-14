@@ -56,7 +56,7 @@ f.make_table_gen <- function (cnv.df)
 	cnv.df$GsID <- factor (cnv.df$GsID)
 
 	s2gs.tab <- table (cnv.df[, c ("SampleID", "GsID")])
-	return (s2gs.tab)	
+	return (s2gs.tab)
 	}	
 
 f.make_table_cnv <- function (cnv.df)

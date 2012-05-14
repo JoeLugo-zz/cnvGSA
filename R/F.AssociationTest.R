@@ -2,7 +2,7 @@
 # ASSOCIATION TEST + FDR
 # -----------------------
 
-F.AssociationTest <- function (cnvData.ls, gsData.ls, assTestPar.ls)
+F.AssociationTest <- function (cnvData.ls, gsData.ls, burdenSample.ls, assTestPar.ls, addEnrPar.ls)
 	{
 	# Different methods to generate totals and subset the count matrix
 	# - 'all': 
@@ -44,6 +44,15 @@ F.AssociationTest <- function (cnvData.ls, gsData.ls, assTestPar.ls)
 	enr2.df <- as.data.frame (stats.mx)
 	enr3.df <- data.frame (FET_permFDR = fdr.nv)
 	enr.df  <- cbind (enr1.df, enr2.df, enr3.df)
+	
+	# Logistic regression
+	if( !is.null(addEnrPar.ls$do_logistic) ) {
+		if( addEnrPar.ls$do_logistic == "full" ) {
+			cat( "Logistic regression (for *all* gene-sets)..." )
+			enr.df <- f.add_lrmstats( enr.df, cnvData.ls, burdenSample.ls, addEnrPar.ls )
+			cat( "done\n" )
+		}
+	}
 	
 	enrRes.ls <- list (basic = enr.df, totals = input.ls$totals)
 	
@@ -96,7 +105,7 @@ f.make_test_input_cnv <- function (cnvData.ls, gsData.ls, assTestPar.ls)
 	data.ls <- list ()
 
 	data.ls$tab <- cnvData.ls$tab$bin
-
+	
 	classes.chv <- assTestPar.ls$test_classes
 	classes.ls  <- as.list (classes.chv)
 
@@ -157,7 +166,7 @@ f.fet <- function (input.ls)
 	gs_ix.ls <- as.list (1: ncol (input.ls$tab))
 
 	stats.mx <- t (sapply (gs_ix.ls, f.fet_unit, input.ls))
-	stats.mx[,12] <- p.adjust( stats.mx[,5], method = "BH" )	## Benjamini-Hochberg corrected p-value"
+	stats.mx[,12] <- p.adjust( stats.mx[,5], method = "BH" )	## Benjamini-Hochberg corrected p-value
 
 	rownames (stats.mx) <- colnames (input.ls$tab)
 	stats.mx <- stats.mx[order (stats.mx[, "FET_pv"], decreasing = F), ]
@@ -187,7 +196,7 @@ f.fet_unit <- function (gs.ix, input.ls)
 					fet.twosided$estimate,
 					fet.twosided$conf.int,
 					0	## Placeholder for Benjamini-Hochberg corrected p-value
-						## (see f.fet() for its assignment and N.B. the col numbers
+						## (see f.fet() for its assignment and n.b. the col numbers
 						## in the p.adjust() line below)
 					)
 
@@ -259,3 +268,4 @@ f.fdr_unit <- function (i.n, input.ls)
 	
 	return (pv_rand.nv)
 	}
+

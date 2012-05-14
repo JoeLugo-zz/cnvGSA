@@ -57,7 +57,7 @@
 \\
 Known gene-sets are tested for prevalence of rare variants in case vs.~control subjects. Whenever a subject has at least one gene in a gene-set affected by a rare variant, a perturbation count of 1 is assigned to the (subject, gene-set) pair; for each gene-set, subject counts are tested vs. control counts using the Fisher Exact Test (FET). Significant gene-sets will have a significantly high count in cases compared to controls. Statistical reports on CNV burden in cases and controls are also generated.\\
 \\
-{\bf Note:} this analysis requires that subjects be unrelated and that case/control cohorts be matched by sex, age, ethnicity, and other potential confounders (such as platform and CNV detection methods). In addition, only rare CNVs should be present. The definition of `rare' is typically based on CNV frequency in the study subjects or on a larger data-set of independent controls that are used to remove putative common regions -- or on a combination of both techniques. For more details about this, see \cite{lionel2011} and \cite{marshall2008}.
+{\bf Note:} this analysis requires that subjects be unrelated and that case/control cohorts be matched by sex, age, ethnicity, and other potential confounders (such as platform and CNV detection methods). In addition, only rare CNVs should be present. The definition of `rare' is typically based on CNV frequency in the study subjects or on a larger data-set of independent controls that are used to remove putative common regions -- or on a combination of both techniques. For more details, see \cite{lionel2011} and \cite{marshall2008}.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -66,7 +66,7 @@ Known gene-sets are tested for prevalence of rare variants in case vs.~control s
 \section{Workflow outline}
 \label{WorkflowOutline}
 
-The general procedure for performing a CNV gene-set analysis involves loading CNV and gene-set data, setting filters and parameters, running the analysis, and reviewing the results. To facilitate these operations, the package provides \texttt{"CnvGSAInput"}, an S4 class acting as a simple container data structure with slots for each required input data structure:
+The general procedure for performing a CNV gene-set analysis involves loading CNV and gene-set data, setting filters and parameters, running the analysis, and reviewing the results. To facilitate these operations, the package provides \texttt{"CnvGSAInput"}, an S4 class acting as a simple container data structure with slots for each of these required inputs:
 
 <<workflow.outline.1>>=
 library("cnvGSA")
@@ -101,7 +101,7 @@ The input object is used with \texttt{cnvGSA}'s main function, \texttt{cnvGSAFis
 	\item \texttt{cnvGSAFisher( input )} - Performs a gene-set association test of case vs. control subjects using the Fisher Exact Test.
 \end{itemize}
 
-This function produces as its output an object of class \texttt{"CnvGSAOutput"} -- likewise a simple S4 class that has slots for each output data structure.
+This function produces as its output an object of class \texttt{"CnvGSAOutput"} -- likewise a simple S4 class that has slots for each of the output elements.
 
 <<workflow.outline.3>>=
 data("cnvGSA_output_example")
@@ -122,7 +122,7 @@ The output slots contain the following:
 
 As with the slots in the input object, each of these can likewise be accessed using an accessor function of the same name (\texttt{burdenSample()} gets \texttt{burdenSample}, etc.).\\
 \\
-Throughout the following sections, the pre-built \texttt{input} example object from above will be shown first to illustrate its structure; each of its elements will then be recreated with the suffix ``\texttt{\_demo}'' to demonstrate the syntax of the functions used to load them. Section \ref{RunningAssociationTest} then shows how to rebuild the full input object using the \texttt{CnvGSAInput} constructor and then run the association test, and section \ref{FullWorkflowExample} shows the full workflow example (i.e. all the code in a single listing) along with a detailed discussion of how to review and interpret the results.
+Throughout the following sections, the pre-built \texttt{input} example object from above will be shown to illustrate its typical elements; each of its elements will then be recreated with the suffix ``\texttt{\_demo}'' to demonstrate the syntax of the functions used to load them. Section \ref{RunningAssociationTest} then shows how to rebuild the full input object using the \texttt{CnvGSAInput} constructor and then run the association test, and section \ref{FullWorkflowExample} shows the full workflow example (i.e. all the code in a single listing) along with a detailed discussion of how to review and interpret the results.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -131,15 +131,29 @@ Throughout the following sections, the pre-built \texttt{input} example object f
 \section{Loading input data}
 \label{LoadingInputData}
 
+The elements of a \texttt{CnvGSAInput} object -- i.e. \texttt{cnvData}, \texttt{gsData}, \texttt{geneData}, and \texttt{params} -- should be loaded first, and then the object itself can be created using a call to its constructor. In other words, the procedure is along the lines of the following pseudocode:
+
+\begin{verbatim}
+cnvData <- ...   # Load cnvData
+gsData <- ...    # Load gsData
+geneData <- ...  # Load geneData
+params <- ...    # Load params
+
+# Create input object
+input <- CnvGSAInput( cnvData, gsData, geneData, params )
+\end{verbatim}
+
+Note that each of these elements can be loaded with the aid of functions provided in the package (see below) {\bf *or*} by manually building them up using \texttt{list()}, \texttt{data.frame()}, etc.
+
 %%
-%% Loading CNV data
+%% CNV data
 %%
-\subsection{Loading CNV data}
-\label{LoadingCnvData}
+\subsection{CNV data}
+\label{CnvData}
 
 The first input data structure that needs to be loaded is \texttt{cnvData}. As mentioned earlier, the \texttt{cnvData()} function below is just an accessor for this slot:
 
-<<Loading.CNV.data.1>>=
+<<CNV.data.1>>=
 str( cnvData(input), strict.width="cut" )
 @
 %\begin{verbatim}
@@ -183,33 +197,42 @@ Its elements are as follows:
 		\texttt{\$gsep} - The character used as delimiter in \texttt{\$cnv\$Genes}.
 	}
 	\item{
-		\texttt{\$filters} - List whose elements are parameters to filter the variants. Possible elements are:
-		\begin{itemize}[label=$\circ$]\setlength{\itemsep}{-1mm}
-			\item{
-				\texttt{limits\_type} {\it (optional)} - Type of variant to be kept (e.g. \texttt{"DEL"} or \texttt{"DUP"}).
-			}
-			\item{
-				\texttt{limits\_size} {\it (optional; overrides} \texttt{\$limits\_type}{\it )} - A data frame with the columns:
-				\begin{itemize}[label=$\cdot$]\setlength{\itemsep}{-1mm}
-					\item \texttt{Type} - Type of variant to be kept
-					\item \texttt{Max\_length} - Maximum length of each CNV
-					\item \texttt{Max\_gcount} - Maximum number of genes hit by each CNV
-				\end{itemize}
-			}
-			\item{
-				\texttt{rem\_genes} {\it (optional)} - Vector of gene IDs to be removed from the analysis (the variants hitting such genes will be removed as well).
-			}
-		\end{itemize}
+		\texttt{\$filters} - List whose elements are parameters to filter variants. {\bf Note that the location of it here is due to the legacy implementation of the package code} (i.e. it will be removed in a future version); to configure the filter parameters, set input object's \texttt{params} slot (see section \ref{ConfiguringTestParameters}).
 	}
 \end{itemize}
 
 %%
-%% Loading cnvData from files
+%% Loading cnvData manually or from files
 %%
-\subsubsection{Loading \texttt{cnvData} from files}
-\label{LoadingCnvDataFromFiles}
+\subsubsection{Loading \texttt{cnvData} manually or from files}
+\label{LoadingCnvDataManuallyOrFromFiles}
 
-The package provides functions for importing data from files into the particular sub-objects of the \texttt{cnvData} structure.
+\texttt{cnvData} can be loaded by building up its component data structures manually along the lines of the following pseudocode:
+
+\begin{verbatim}
+# Assign vectors SampleID, Chr, Coord_i, Coord_f, Type, Genes, and CnvID
+SampleID <- ...
+Chr <- ...
+Coord_i <- ...
+Coord_f <- ...
+Type <- ...
+Genes <- ...    # If using getCnvGenes() (see further down this section),
+                #   just assign a vector of empty strings
+CnvID <- ...    # An arbitrary ID can be used as long as it is unique and
+                #   of type character
+
+# Create the cnv data frame
+cnv <- data.frame( SampleID, Chr, Coord_i, Coord_f, Type, Genes, CnvID )
+
+# Assign s2class and gsep
+s2class <- ...
+gsep <- ...
+
+# Create cnvData
+cnvData <- list( cnv, s2class, gsep )
+\end{verbatim}
+
+The package also provides functions for conveniently loading \texttt{cnvData} from common filetypes.
 
 \begin{itemize}
 	\item{
@@ -286,18 +309,18 @@ cnvData_demo$s2class <- read.table(
 )
 rm(s2classFile)
 @
-
-Finally, \texttt{\$filters} is loaded along with the main test parameters (see section \ref{ConfiguringTestParameters}).
+%$	%% extra dollar sign as workaround for Geany's buggy syntax colouring
 
 
 %%
 %% Loading gene sets
 %%
-\subsection{Loading gene sets}
-\label{LoadingGeneSets}
+\subsection{Gene sets}
+\label{GeneSets}
 
 The next data structure that needs to be loaded is \texttt{gsData}, which contains the gene-set data. Again, the \texttt{gsData()} function below is just an accessor function for this slot:
 
+%% *** N.B. Putting strict.width="wrap" or "cut" in the str() call below causes it to print the complete list
 <<Loading.gene.sets.1>>=
 str( gsData(input), list.len=4 )
 @
@@ -365,7 +388,7 @@ rm(gsDataFile)
 \subsubsection{Sources of gene-sets}
 \label{SourcesOfGenesets}
 
-The first few entries in the \texttt{gsData} example above (page \pageref{LoadingGeneSets}) show gene-set data collected from the Gene Ontology database (\href{http://www.geneontology.org/}{http://www.geneontology.org/}). Gene-sets can also be derived from other public databases such as:
+The first few entries in the \texttt{gsData} example above (page \pageref{GeneSets}) show gene-set data collected from the Gene Ontology database (\href{http://www.geneontology.org/}{http://www.geneontology.org/}). Gene-sets can also be derived from other public databases such as:
 
 \begin{itemize}\setlength{\itemsep}{-1mm}
 	\item PFAM: \href{http://pfam.sanger.ac.uk/}{http://pfam.sanger.ac.uk/}
@@ -379,8 +402,8 @@ The first few entries in the \texttt{gsData} example above (page \pageref{Loadin
 %%
 %% Loading gene annotations
 %%
-\subsection{Loading gene annotations}
-\label{LoadingGeneAnnotations}
+\subsection{Gene annotations}
+\label{GeneAnnotations}
 
 The \texttt{geneData} slot in the input should contain the gene annotations:
 
@@ -474,7 +497,7 @@ The parameters are as follows:
 	\item \texttt{sample\_classes} - The sample classes, e.g. \texttt{"case"} and \texttt{"ctrl"}.
 	\item \texttt{fdr\_iter} - The number of iterations to perform in the empirical FDR (False Discovery Rate) estimation done by randomizing sample class (i.e. case, control) assignments.
 	\item \texttt{extended\_report} - The number of gene-sets for which the extended report will be generated. (The extended report is the `\texttt{enrRes\$extended}' structure in the output; see section \ref{EnrichmentResults}.)
-	\item \texttt{filters} - A list of parameters for filtering the CNVs (see section \ref{LoadingCnvData}).
+	\item \texttt{filters} - A list of parameters for filtering the CNVs (see section \ref{CnvData}).
 	\item \texttt{boxplot\_PDFs} - Boolean indicating whether or not to produce PDFs containing boxplots of the statistics for the burden analysis on samples (cf. section \ref{BurdenAnalysis}).
 \end{itemize}
 
@@ -546,7 +569,7 @@ output <- cnvGSAFisher( input )
 %output <- cnvGSAFisher( input )
 %\end{verbatim}
 
-{\bf Note that a high \texttt{fdr\_iter} will require a noticeable runtime.} For example, on a typical desktop workstation setup as of early 2012, the runtime for an input dataset similar to the full workflow example (5500 CNVs (averaging 1 gene per filtered CNV) against 3700 gene-sets; see section \ref{FullWorkflowExample}), with an \texttt{fdr\_iter} of 1000, will be on the order of 1 hour.\\
+{\bf Note that a high \texttt{fdr\_iter} will require a noticeable runtime.} For example, on a typical desktop workstation setup as of early 2012, the runtime for an input data-set similar to the full workflow example (5500 CNVs (averaging 1 gene per filtered CNV) against 3700 gene-sets; see section \ref{FullWorkflowExample}), with an \texttt{fdr\_iter} of 1000, will be on the order of 1 hour.\\
 \\
 (Also note that if you are running the test more than once with the same input and parameters, be sure to first call \texttt{set.seed()} so that the random number generator is consistent each time; otherwise the FDR calcluation will be slightly different for each run.)
  
@@ -565,7 +588,7 @@ output <- cnvGSAFisher( input )
 \subsection{Loading the data and running the association test}
 \label{FullWorklfowExampleLoadingAndRunning}
 
-The following code performs an analysis of approx. 5500 CNVs from 2000 subjects against approx. 3700 gene-sets using an \texttt{fdr\_iter} of 1000. The CNV dataset consists of rare CNVs as described in Pinto et al., Nature 2010 \cite{pinto2010}, and the gene-sets are a collection imported from the Gene Ontology, KEGG, Biocarta, Reactome, and PFAM (see section \ref{LoadingGeneSets}).
+The following code performs an analysis of approx. 5500 CNVs from 2000 subjects against approx. 3700 gene-sets using an \texttt{fdr\_iter} of 1000. The CNV data-set consists of rare CNVs as described in Pinto et al., Nature 2010 \cite{pinto2010}, and the gene-sets are a collection imported from the Gene Ontology, KEGG, Biocarta, Reactome, and PFAM (see section \ref{GeneSets}).
 
 \begin{verbatim}
 library( "cnvGSA" )
@@ -871,7 +894,7 @@ str( geneData(output), strict.width="wrap" )
 Its elements are:
 
 \begin{itemize}\setlength{\itemsep}{-1mm}
-	\item \texttt{ann} - Gene annotations (symbols and descriptive names), exactly as in the input (see section \ref{LoadingGeneAnnotations}).
+	\item \texttt{ann} - Gene annotations (symbols and descriptive names), exactly as in the input (see section \ref{GeneAnnotations}).
 	\item \texttt{gcounts} - Data frame containing case/control counts and percentages and the p-value of association for each gene.
 	\item \texttt{support\_case} - The complete set of ``case support genes'' (as defined in the description of \texttt{extended} earlier in this section) over all gene-sets.
 	\item \texttt{support\_ctrl} - As above but with ``control support genes''.
