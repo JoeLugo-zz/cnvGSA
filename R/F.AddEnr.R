@@ -201,7 +201,6 @@ f.add_lrmstats <- function (enr.df, cnvData.ls, burdenSample.ls, addEnrPar.ls)
 	Class <- c (
 		rep (1, length (burdenSample.ls$stat.ls[[1]]$LogLenMean$SampleID)),	# brglm requires y-values to be between 0 and 1, hence 1=case, 0=ctrl
 		rep (0, length (burdenSample.ls$stat.ls[[2]]$LogLenMean$SampleID))
-			### TODO: check this
 	)
 	LogLenTot <- c (
 		burdenSample.ls$stat.ls[[1]]$LogLenTot$Stat,

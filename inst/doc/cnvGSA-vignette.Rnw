@@ -632,9 +632,9 @@ genemap <- data.frame(
 genemap$Chr <- sub( genemap$Chr, pattern = "chr", replacement = "" )
 cnvData$gsep <- ";"
 cnvData$cnv$Genes <- getCnvGenes(
-	cnv = cnvData$cnv,
-	genemap = genemap,
-	delim = cnvData$gsep
+    cnv = cnvData$cnv,
+    genemap = genemap,
+    delim = cnvData$gsep
 )
 rm( genemapFile, fields, genemap )
 

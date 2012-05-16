@@ -123,16 +123,25 @@ f.burden_sample_stats <- function (cnv.df)
 	stat.ls[[3]] <- aggregate (CnvID ~ SampleID, cnv.df, length)
 	stat.ls[[4]] <- aggregate (Gcount   ~ SampleID, cnv.df, f.count_not0)
 	stat.ls[[5]] <- aggregate (GsGcount ~ SampleID, cnv.df, f.count_not0)
-	
+
 	stat.ls[[6]] <- aggregate (Gcount   ~ SampleID, cnv.df, mean)
 	stat.ls[[7]] <- aggregate (GsGcount ~ SampleID, cnv.df, mean)
 	stat.ls[[8]] <- aggregate (Gcount   ~ SampleID, cnv.df, sum)
 	stat.ls[[9]] <- aggregate (GsGcount ~ SampleID, cnv.df, sum)
 
-	names (stat.ls) <- c (	"LogLenMean", "LogLenTot", 
-							"CNV_N", "GenCNV_N", "GsGenCNV_N",
-							"Gene_N_Mean", "GsGene_N_Mean", "Gene_N_Tot", "GsGene_N_Tot"
-							)
+	names (stat.ls) <- c (
+		"LogLenMean",
+		"LogLenTot", 
+
+		"CNV_N",
+		"GenCNV_N",
+		"GsGenCNV_N",
+
+		"Gene_N_Mean",
+		"GsGene_N_Mean",
+		"Gene_N_Tot",
+		"GsGene_N_Tot"
+	)
 
 	f.setStatName <- function (stat.df)
 		{names (stat.df)[2] <- "Stat"; return (stat.df)}
