@@ -7,8 +7,9 @@ F.Pipeline <- function (cnvData.ls, gsData.ls, geneData.ls, params.ls)
 	assTestPar.ls$test_classes   <- params.ls$sample_classes
 	assTestPar.ls$iter           <- params.ls$fdr_iter
 	assTestPar.ls$boxplot.bn     <- params.ls$boxplot_PDFs
+	assTestPar.ls$bhfdr_bins.nv  <- params.ls$bhfdr_bins
 	addEnrPar.ls$do_logistic     <- params.ls$do_logistic
-	addEnrPar.ls$sel_n           <- params.ls$extended_report	
+	addEnrPar.ls$sel_n           <- params.ls$extended_report
 	cnvData.ls$filters$rem_genes <- params.ls$rem_genes
 
 	cnvData.ls  <- F.PreProcess (cnvData.ls, gsData.ls)
@@ -21,7 +22,7 @@ F.Pipeline <- function (cnvData.ls, gsData.ls, geneData.ls, params.ls)
 	enrRes.ls   <- F.AddEnr (enrRes.ls, cnvData.ls, gsData.ls, geneData.ls, burdenSample.ls, assTestPar.ls, addEnrPar.ls)
 
 	# Final adjustments before producing the output...
-	burdenSample.ls$stat.ls <- NULL		# stat.ls was needed for f.lrm (the logistic test); doesn't need to appear in the output
+	burdenSample.ls$stat.ls <- NULL		# stat.ls was needed for f.add_lrm (the logistic test); doesn't need to appear in the output
 
 	# Produce the output
 	cnvGSA.out <- new( "CnvGSAOutput", 

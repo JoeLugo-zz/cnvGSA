@@ -1,8 +1,8 @@
 Package: cnvGSA
 Type: Package
 Title: Gene Set Analysis of (Rare) Copy Number Variants
-Version: 1.1.62
-Date: 2012-05-15
+Version: 1.1.91
+Date: 2012-05-18
 Author: Daniele Merico <daniele.merico@gmail.com>; packaged by Robert Ziman <rziman@gmail.com>
 Maintainer: Robert Ziman <rziman@gmail.com>
 Description: This package is intended to facilitate gene-set association with rare CNVs in case-control studies.

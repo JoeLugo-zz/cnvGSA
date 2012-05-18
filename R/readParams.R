@@ -1,28 +1,25 @@
 
 readParamsRFile <- function( filename )
 {
-	## Input file (see sampleparams.R) should contain something along the lines of:
+	## Input file should contain something along the lines of:
 	##
 	##     # Main test parameters
 	##     grandtotals_mode <- "all"
 	##     sample_classes   <- c( "case", "ctrl" )
 	##     fdr_iter         <- 2
 	##     extended_report  <- 200
-	##     do_logistic      <- "full"
-	##     boxplot_PDFs     <- FALSE
-	##
-	##     # cnvData$filters parameters
-	##     limits_type      <- "DEL"
 	##     rem_genes        <- c( "9696", "3106" )		# CROCC and HLA-B
+	##     ...etc...
 	##
 	## 'params', the output object, can then be built in a striaghtforwardly
 	## after sourcing the file.
 
 	## The following assignments are a workaround for "no visible binding for global variable" notes
-	## in the 'R CMD check' output
+	## in the 'R CMD check' output:
 	grandtotals_mode <- NULL
 	sample_classes <- NULL
 	fdr_iter <- NULL
+	bhfdr_bins <- NULL
 	extended_report <- NULL
 	do_logistic <- NULL
 	boxplot_PDFs <- NULL
@@ -38,6 +35,7 @@ readParamsRFile <- function( filename )
 		grandtotals_mode = grandtotals_mode,
 		sample_classes = sample_classes,
 		fdr_iter = fdr_iter,
+		bhfdr_bins = bhfdr_bins,
 		extended_report = extended_report,
 		do_logistic = do_logistic,
 		boxplot_PDFs = boxplot_PDFs

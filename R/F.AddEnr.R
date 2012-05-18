@@ -12,11 +12,11 @@ F.AddEnr <- function (enrRes.ls, cnvData.ls, gsData.ls, geneData.ls, burdenSampl
 	enr.df <- enrRes.ls$basic[ (1: min (nrow (enrRes.ls$basic), addEnrPar.ls$sel_n)), ]
 
 	# Logistic regression
-	if( !is.null(addEnrPar.ls$do_logistic) ) {
-		if( addEnrPar.ls$do_logistic == "extended" ) {
-			cat( "Logistic regression (for only those gene-sets in the extended report)..." )
-			enr.df <- f.add_lrmstats( enr.df, cnvData.ls, burdenSample.ls, addEnrPar.ls )
-			cat( "done\n" )
+	if (!is.null (addEnrPar.ls$do_logistic)) {
+		if (addEnrPar.ls$do_logistic == "extended") {
+			cat ("Logistic regression (for only those gene-sets in the extended report)...")
+			enr.df <- f.add_lrm (enr.df, cnvData.ls, burdenSample.ls, addEnrPar.ls)
+			cat ("done\n")
 		}
 	}
 
@@ -189,8 +189,8 @@ f.rem_top_fdr_unit <- function (pvalue.n, enr.df)
 	return (fdr.n)
 	}
 
-# logistic regression test
-f.add_lrmstats <- function (enr.df, cnvData.ls, burdenSample.ls, addEnrPar.ls)
+# logistic regression model
+f.add_lrm <- function (enr.df, cnvData.ls, burdenSample.ls, addEnrPar.ls)
 	{
 
 	# 1. generate the following columns (LogLenTot and GsGene_N_Tot obtained from F.BurdenSample)

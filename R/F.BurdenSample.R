@@ -40,7 +40,7 @@ F.BurdenSample <- function (cnvData.ls, assTestPar.ls)
 
 	# Make stats by sample, for the two classes separately
 	stat.ls <- lapply (cnv.ls, f.burden_sample_stats)
-	burdSampleStat.ls$stat.ls <- stat.ls	## Needed for f.lrm (the logistic test); will be NULLed afterward
+	burdSampleStat.ls$stat.ls <- stat.ls	## Needed for f.add_lrm (the logistic test); will be NULLed afterward
 
 	# Make summaries of the stats by sample, for the two classes separately
 	summary.ls <- lapply (stat.ls, f.burden_sample_summaries)
@@ -105,8 +105,7 @@ f.check_cnv_postproc <- function (cnvData.ls)
 	
 f.burden_sample_stats <- function (cnv.df)
 	#
-	# N.B.: f.add_lrmstats (i.e. the subroutine that does the logistic regression)
-	#       depends on the output of this function
+	# N.B.: f.add_lrm (the subroutine that does the logistic regression) depends on the output of this function
 	#
 	{
 	# Statistics by Sample

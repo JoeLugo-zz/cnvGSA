@@ -28,31 +28,60 @@ F.AssociationTest <- function (cnvData.ls, gsData.ls, burdenSample.ls, assTestPa
 	
 	type.ch <- assTestPar.ls$test_type
 	input.ls <- f.make_test_input.ls[[type.ch]](cnvData.ls, gsData.ls, assTestPar.ls)
-	
-	stats.mx <- f.fet (input.ls)
-	
-	fdr.nv <- f.fdr (stats.mx[, "FET_pv"], input.ls, assTestPar.ls$iter)
 
-	gs.id <- rownames (stats.mx)
+	gs.id <- colnames (input.ls$tab)
 	sizes.nv <- sapply (gsData.ls$gs2gene[gs.id], length)
-
-	enr1.df <- data.frame (
-				GsID = gs.id,
-				GsName = gsData.ls$gs2name[gs.id],
-				GsSize = sizes.nv,
-				stringsAsFactors = F)
-	enr2.df <- as.data.frame (stats.mx)
-	enr3.df <- data.frame (FET_permFDR = fdr.nv)
-	enr.df  <- cbind (enr1.df, enr2.df, enr3.df)
+	enr.df <- data.frame (
+		GsID = gs.id,
+		GsName = gsData.ls$gs2name[gs.id],
+		GsSize = sizes.nv,
+		stringsAsFactors = F
+	)
 	
+	#
+	# Fisher's Exact Test
+	#
+#	f.fet.systime <- system.time(
+		stats.mx <- f.fet (input.ls, fdr_flag.bn=F)
+#	)
+#	cat (sep="", "FET runtime: ", f.fet.systime[1], " seconds\n")
+	enr.df <- cbind (enr.df, as.data.frame (stats.mx))
+	
+	#
+	# BH FDR (Benjamini-Hochberg FDR)
+	#
+	enr.df[["FET_BHFDR"]] <- p.adjust (enr.df$FET_pv, method = "BH")
+
+	#
+	# Binned BH FDR (Benjamini-Hochberg FDR using gene-set size bins defined in params)
+	#
+	enr.df <- f.add_binned_bhfdr (enr.df, assTestPar.ls)
+
+	#
+	# Permutation-based FDR
+	#
+#	f.fdr.systime <- system.time(
+		fdr.nv <- f.fdr (enr.df$FET_pv, input.ls, assTestPar.ls$iter)
+#	)
+#	cat (sep="", "FDR runtime: ", f.fdr.systime[1], " seconds\n")
+	enr.df[["FET_permFDR"]] <- fdr.nv
+
+	#
 	# Logistic regression
+	#
 	if( !is.null(addEnrPar.ls$do_logistic) ) {
 		if( addEnrPar.ls$do_logistic == "full" ) {
 			cat( "Logistic regression (for *all* gene-sets)..." )
-			enr.df <- f.add_lrmstats( enr.df, cnvData.ls, burdenSample.ls, addEnrPar.ls )
+#			f.add_lrm.systime <- system.time(
+				enr.df <- f.add_lrm( enr.df, cnvData.ls, burdenSample.ls, addEnrPar.ls )
+#			)
 			cat( "done\n" )
+#			cat (sep="", "Logistic runtime: ", f.add_lrm.systime[1], " seconds\n")
 		}
 	}
+
+	# Sort by FET p-value
+	enr.df <- enr.df[order (enr.df$FET_pv, decreasing=F), ]
 	
 	enrRes.ls <- list (basic = enr.df, totals = input.ls$totals)
 	
@@ -161,21 +190,21 @@ f.make_test_input_cnvGen <- function (cnvData.ls, gsData.ls, assTestPar.ls)
 	}
 
 # calls the test on each gene-set
-f.fet <- function (input.ls)
+f.fet <- function (input.ls, fdr_flag.bn)
 	{
 	gs_ix.ls <- as.list (1: ncol (input.ls$tab))
 
-	stats.mx <- t (sapply (gs_ix.ls, f.fet_unit, input.ls))
-	stats.mx[,12] <- p.adjust( stats.mx[,5], method = "BH" )	## Benjamini-Hochberg corrected p-value
+	stats.mx <- t (sapply (gs_ix.ls, f.fet_unit, input.ls, fdr_flag.bn))
+#	stats.mx[,12] <- p.adjust( stats.mx[,5], method = "BH" )	## Benjamini-Hochberg corrected p-value
 
 	rownames (stats.mx) <- colnames (input.ls$tab)
-	stats.mx <- stats.mx[order (stats.mx[, "FET_pv"], decreasing = F), ]
+#	stats.mx <- stats.mx[order (stats.mx[, "FET_pv"], decreasing = F), ]
 	
 	return (stats.mx)
 	}
 
 # runs the test on a single gene-set
-f.fet_unit <- function (gs.ix, input.ls)
+f.fet_unit <- function (gs.ix, input.ls, fdr_flag.bn)
 	{
 	c1_gsy.n <- sum (input.ls$tab[input.ls$class_ix[[1]], gs.ix])
 	c1_gsn.n <- input.ls$totals[1] - c1_gsy.n 
@@ -184,7 +213,15 @@ f.fet_unit <- function (gs.ix, input.ls)
 	contingency.mx <- matrix (c (c1_gsy.n, c1_gsn.n, c2_gsy.n, c2_gsn.n), ncol = 2, nrow = 2, byrow = T)
 
 	fet.test <- fisher.test (contingency.mx, alternative = "greater")
-	fet.twosided <- fisher.test (contingency.mx, alternative = "two.sided")
+
+	# Compute the two-sided FET only when not inside the FDR calculation...
+	# Not the nicest way of doing this but it's the minimal code change that does it...
+	if (fdr_flag.bn == FALSE ) {
+		fet.twosided <- fisher.test (contingency.mx, alternative = "two.sided")
+	}
+	else {
+		fet.twosided <- list (estimate = 0, conf.int = c (0, 0))
+	}
 
 	output.nv <- c (c1_gsy.n,
 					c2_gsy.n,
@@ -194,10 +231,7 @@ f.fet_unit <- function (gs.ix, input.ls)
 					fet.test$estimate,
 					fet.test$conf.int,
 					fet.twosided$estimate,
-					fet.twosided$conf.int,
-					0	## Placeholder for Benjamini-Hochberg corrected p-value
-						## (see f.fet() for its assignment and n.b. the col numbers
-						## in the p.adjust() line below)
+					fet.twosided$conf.int
 					)
 
 	names (output.nv) <- c (
@@ -209,8 +243,7 @@ f.fet_unit <- function (gs.ix, input.ls)
 						"FET_ORconfHigh",
 						"FET2s_OR",
 						"FET2s_ORconfLow",
-						"FET2s_ORconfHigh",
-						"FET_bhFDR"
+						"FET2s_ORconfHigh"
 						)
 
 	return (output.nv)
@@ -264,8 +297,50 @@ f.fdr_unit <- function (i.n, input.ls)
 	input_perm.ls$class_ix[[1]] <- sample (all.ix, size = length (c1.ix))
 	input_perm.ls$class_ix[[2]] <- setdiff (all.ix, input_perm.ls$class_ix[[1]])
 
-	pv_rand.nv <- f.fet (input_perm.ls)[, "FET_pv"]
+	pv_rand.nv <- f.fet (input_perm.ls, fdr_flag.bn=T)[, "FET_pv"]
 	
 	return (pv_rand.nv)
 	}
 
+# Binned BH FDR (Benjamini-Hochberg FDR using gene-set size bins defined in params)
+f.add_binned_bhfdr <- function (enr.df, assTestPar.ls)
+	{
+	bhfdr_bins.nv <- assTestPar.ls$bhfdr_bins.nv
+
+	if (is.null (bhfdr_bins.nv))
+		{
+		input.df <- enr.df[, c ("GsID", "GsSize", "FET_pv")]
+		
+		output.df <- NULL
+
+		for (i in 1: (length(bhfdr_bins.nv) - 1))
+			{
+			input_binned.df <- subset (
+				input.df,
+				GsSize > bhfdr_bins.nv[i]  &  GsSize <= bhfdr_bins.nv[i+1]
+			)
+			
+			output_binned.df <- cbind (
+				input_binned.df,
+				p.adjust (input_binned.df$FET_pv, method = "BH")
+			)
+			names (output_binned.df)[4] <- "FET_binnedBHFDR"
+		
+			if (is.null (output.df))
+				{ output.df <- output_binned.df }
+			else
+				{ output.df <- rbind (output.df, output_binned.df) }
+			}
+
+		output.df$GsSize <- NULL
+		output.df$FET_pv <- NULL
+		enr.df <- merge (enr.df, output.df, all=T)
+		rownames (enr.df) <- enr.df$GsID	# ...since merge() removes them for some reason
+		}
+	else
+		{
+		enr.df[["FET_binnedBHFDR"]] <- rep (NA, nrow(enr.df))
+		}
+
+	return (enr.df)
+	}

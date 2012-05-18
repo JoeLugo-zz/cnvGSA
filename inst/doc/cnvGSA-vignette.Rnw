@@ -171,8 +171,6 @@ str( cnvData(input), strict.width="cut" )
 %  ..$ Class   : chr [1:2035] "case" "case" "case" "case" ...
 %  ..$ SampleID: chr [1:2035] "1020_4" "1030_3" "1045_3" "1050_3" ...
 % $ gsep   : chr ";"
-% $ filters:List of 1
-%  ..$ limits_type: chr "DEL"
 %\end{verbatim}
 
 Its elements are as follows:
@@ -470,17 +468,17 @@ The main association test procedure accepts several parameters as a simple list 
 <<Configuring.test.parameters.1>>=
 str( params(input) )
 @
-%\begin{verbatim}
-%> str( params(input) )
-%List of 4
+%List of 8
 % $ grandtotals_mode: chr "all"
 % $ sample_classes  : chr [1:2] "case" "ctrl"
 % $ fdr_iter        : num 1000
 % $ extended_report : num 200
-% $ filters         :List of 2
+% $ filters         :List of 1
 %  ..$ limits_type: chr "DEL"
-% $ boxplot_PDFs    : logi FALSE
-%\end{verbatim}
+% $ boxplot_PDFs    : logi TRUE
+% $ bhfdr_bins      : num [1:4] 0 100 400 750
+% $ do_logistic     : chr "full"
+
 %$	%% extra dollar sign as workaround for Geany's buggy syntax colouring
 
 The parameters are as follows:
@@ -495,10 +493,30 @@ The parameters are as follows:
 		\end{itemize}
 	}
 	\item \texttt{sample\_classes} - The sample classes, e.g. \texttt{"case"} and \texttt{"ctrl"}.
-	\item \texttt{fdr\_iter} - The number of iterations to perform in the empirical FDR (False Discovery Rate) estimation done by randomizing sample class (i.e. case, control) assignments.
+	\item \texttt{fdr\_iter} - The number of iterations to perform in the empirical FDR estimation (which is done by randomizing sample class (i.e. case, control) assignments).
 	\item \texttt{extended\_report} - The number of gene-sets for which the extended report will be generated. (The extended report is the `\texttt{enrRes\$extended}' structure in the output; see section \ref{EnrichmentResults}.)
-	\item \texttt{filters} - A list of parameters for filtering the CNVs (see section \ref{CnvData}).
+	\item{
+		\texttt{filters} - A list of parameters for filtering the CNVs. Possible elements are:
+		\begin{itemize}[label=$\circ$]\setlength{\itemsep}{-1mm}
+			\item{
+				\texttt{limits\_type} {\it (optional)} - Type of variant to be kept (e.g. \texttt{"DEL"} or \texttt{"DUP"}).
+			}
+			\item{
+				\texttt{limits\_size} {\it (optional; overrides} \texttt{\$limits\_type}{\it )} - A data frame with the columns:
+				\begin{itemize}[label=$\cdot$]\setlength{\itemsep}{-1mm}
+					\item \texttt{Type} - Type of variant to be kept
+					\item \texttt{Max\_length} - Maximum length of each CNV
+					\item \texttt{Max\_gcount} - Maximum number of genes hit by each CNV
+				\end{itemize}
+			}
+			\item{
+				\texttt{rem\_genes} {\it (optional)} - Vector of gene IDs to be removed from the analysis (the variants hitting such genes will be removed as well).
+			}
+		\end{itemize}
+	}
 	\item \texttt{boxplot\_PDFs} - Boolean indicating whether or not to produce PDFs containing boxplots of the statistics for the burden analysis on samples (cf. section \ref{BurdenAnalysis}).
+	\item \texttt{bhfdr\_bins} - Vector of integers specifying the bounds for the gene-set size bins to be used in the binned Benjamini-Hochberg FDR calculation (see discussion in section \ref{EnrichmentResults}). These should be in ascending order starting with the lower bound of the smallest gene-set size bin and ending with the upper bound of the largest, where the upper bound is exclusive and the upper bound is includisve. For example, ``\texttt{0 100 400 750}'' above specifies gene-set size bins of 1-100 genes, 101-400 genes, and 401-750 genes.
+	\item \texttt{do\_logistic} - String indicating how to perform the logistic regression model. \texttt{"full"} will enable the model for all gene-sets and show the resulting columns in both \texttt{enrRes\$basic} and \texttt{enrRes\$extended} in the output whereas \texttt{"extended"} will enable it only for those gene-sets shown in \texttt{enrRes\$extended} (see section \ref{EnrichmentResults} for details on both these output structures); if absent or with any other value, the model will be disabled.
 \end{itemize}
 
 {\bf Note:} larger gene-sets have more statistical power; this can be taken into account by separately testing gene-sets with different sizes.
@@ -511,10 +529,11 @@ To make it easier to integrate the association test into a larger bioinformatics
 \begin{verbatim}
 # Main test parameters
 grandtotals_mode <- "all"
-sample_classes   <- c( "case", "ctrl" )
+sample_classes   <- c("case", "ctrl")
 fdr_iter         <- 1000
 extended_report  <- 200
 boxplot_PDFs     <- FALSE
+bhfdr_bins       <- c(0, 100, 400, 750)
 
 # cnvData$filters parameters
 limits_type      <- "DEL"
@@ -572,6 +591,14 @@ output <- cnvGSAFisher( input )
 {\bf Note that a high \texttt{fdr\_iter} will require a noticeable runtime.} For example, on a typical desktop workstation setup as of early 2012, the runtime for an input data-set similar to the full workflow example (5500 CNVs (averaging 1 gene per filtered CNV) against 3700 gene-sets; see section \ref{FullWorkflowExample}), with an \texttt{fdr\_iter} of 1000, will be on the order of 1 hour.\\
 \\
 (Also note that if you are running the test more than once with the same input and parameters, be sure to first call \texttt{set.seed()} so that the random number generator is consistent each time; otherwise the FDR calcluation will be slightly different for each run.)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+<<input.cleanup,echo=FALSE>>=
+# Cleanup any input variables hanging around so that Sweave() won't pollute
+options(width=100)
+@
+
  
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -745,8 +772,6 @@ str( enrRes(output)$extended, max.level=1, strict.width="cut" )
 @
 %$	%% extra dollar sign as workaround for Geany's buggy syntax colouring
 
-%\begin{verbatim}
-%> str( enrRes(output)$extended, max.level=1, strict.width="cut" )
 %'data.frame':   200 obs. of  31 variables:
 % $ GsID               : chr  "GO:0005929" "GO:0030030" "GO:0006928" "GO:000581..
 % $ GsName             : chr  "cilium" "cell projection organization" "cellular..
@@ -778,7 +803,6 @@ str( enrRes(output)$extended, max.level=1, strict.width="cut" )
 % $ FETfdr_remTop      :List of 200
 %  .. [list output truncated]
 % $ Topgene            : chr  "CROCC" "CROCC" "ERBB4" "CROCC" ...
-%\end{verbatim}
 
 Each row contains results for a single gene-set. The columns are as follows:
 
@@ -787,7 +811,7 @@ Each row contains results for a single gene-set. The columns are as follows:
 	\item \texttt{case\_N}/\texttt{ctrl\_N} and \texttt{case\_\%}/\texttt{ctrl\_\%} show the number and percentage of case and control samples hitting the gene-set.
 	\item \texttt{FET\_pv}, \texttt{FET\_OR}, \texttt{FET\_ORconfLow}, and \texttt{FET\_ORconfHigh} show the gene-set p-value, odds ratio, and low and high bounds of the confidence interval for the {\bf one-sided} Fisher Exact Test of the gene-set.
 	\item \texttt{FET2s\_pv}, \texttt{FET2s\_OR}, \texttt{FET2s\_ORconfLow}, and \texttt{FET2s\_ORconfHigh} show the gene-set p-value, odds ratio, and low and high bounds of the confidence interval for the {\bf two-sided} Fisher Exact Test of the gene-set.
-	\item \texttt{FET\_bhFDR} and \texttt{FET\_permFDR} show the Benjamini-Hochberg corrected p-value and the permutation-based FDR, respectively.
+	\item \texttt{FET\_BHFDR}, \texttt{FET\_binnedBHFDR}, and \texttt{FET\_permFDR} show FDR values using three methods. \texttt{FET\_BHFDR} is the Benjamini-Hochberg FDR for each gene-set calculated in relation to all the gene-sets in the input. \texttt{FET\_binnedBHFDR} does likewise for each gene-set but in relation only to those gene-sets in the same size bin; gene-set size bins are set with the ``\texttt{bhfdr\_bins}'' parameter in the input (see section \ref{ConfiguringTestParameters}). \texttt{FET\_permFDR} is a permutation-based FDR.
 	\item \texttt{Support\_size\_case}, \texttt{Support\_geneid\_case}, and	\texttt{Support\_symbol\_case} show the number, IDs, and symbols of the ``case support genes'' involving only the genes from this gene-set. ``Case support genes'' are defined as those genes whose counts are greater in cases than in controls for the given gene-set. The set of case support genes over all genes is provided in \texttt{geneData} in the output; see the description a little further down in this section.)
 	\item \texttt{Support\_size\_ctrl}, \texttt{Support\_geneid\_ctrl}, and	\texttt{Support\_symbol\_ctrl} show the corresponding ``control support genes'' (i.e. same as above but with genes whose counts are greater in controls than in cases).
 	\item \texttt{FETpv\_remTop} and \texttt{FETfdr\_remTop} show the exact and permuted p-values when the top associated gene in the gene-set is removed.
