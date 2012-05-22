@@ -46,20 +46,20 @@ readParamsRFile <- function( filename )
 	filters <- list()
 
 	## limits_type
-	if( ! is.null(limits_type) )	# Before "no visible binding for global variable" fix above, was: if( is.element( "limits_type", ls() ) )
+	if( ! is.null(limits_type) )
 	{
 		filters$limits_type <- limits_type
 	}
 	
 	## limits_size
-	if( ! is.null(Type) )	# Before "no visible binding for global variable" fix above, was: if( is.element( "Type", ls() ) )
+	if( ! is.null(Type) )
 	{
 		## First check that the other two parts are there
-		if( is.null(Max_length) )	# Before "no visible binding for global variable" fix above, was: if( ! is.element( "Max_length", ls() ) )
+		if( is.null(Max_length) )
 		{
 			stop( "Missing 'Max_length' parameter" )
 		}
-		else if( is.null(Max_gcount) )	# Before "no visible binding for global variable" fix above, was: else if( ! is.element( "Max_gcount", ls() ) )
+		else if( is.null(Max_gcount) )
 		{
 			stop( "Missing 'Max_gcount' parameter" )
 		}
@@ -72,7 +72,7 @@ readParamsRFile <- function( filename )
 	}
 	
 	## rem_genes
-	if( ! is.null(rem_genes) )	# Before "no visible binding for global variable" fix above, was: if( is.element( "rem_genes", ls() ) )
+	if( ! is.null(rem_genes) )
 	{
 		filters$rem_genes <- rem_genes
 	}
