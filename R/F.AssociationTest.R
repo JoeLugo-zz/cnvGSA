@@ -69,15 +69,13 @@ F.AssociationTest <- function (cnvData.ls, gsData.ls, burdenSample.ls, assTestPa
 	#
 	# Logistic regression
 	#
-	if( !is.null(addEnrPar.ls$do_logistic) ) {
-		if( addEnrPar.ls$do_logistic == "full" ) {
-			cat( "Logistic regression (for *all* gene-sets)..." )
-#			f.add_lrm.systime <- system.time(
-				enr.df <- f.add_lrm( enr.df, cnvData.ls, burdenSample.ls, addEnrPar.ls )
-#			)
-			cat( "done\n" )
-#			cat (sep="", "Logistic runtime: ", f.add_lrm.systime[1], " seconds\n")
-		}
+	if( !is.null(addEnrPar.ls$do_logistic) && addEnrPar.ls$do_logistic == "full") {
+		cat( "Logistic regression (for *all* gene-sets)..." )
+#		f.add_lrm.systime <- system.time(
+			enr.df <- f.add_lrm( enr.df, cnvData.ls, burdenSample.ls, addEnrPar.ls )
+#		)
+		cat( "done\n" )
+#		cat (sep="", "Logistic runtime: ", f.add_lrm.systime[1], " seconds\n")
 	}
 
 	# Sort by FET p-value
