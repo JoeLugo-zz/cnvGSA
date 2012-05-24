@@ -14,6 +14,7 @@ F.AssociationTest <- function (cnvData.ls, gsData.ls, burdenSample.ls, assTestPa
 	# - 'cnvGen': 
 	#   . totals: all samples with at least a genic cnv, 
 	#   . table: all samples with at least a genic cnv (requires subsetting)
+
 	if (is.null (assTestPar.ls$iter)) assTestPar.ls$iter <- 2000
 
 	methods.chv <- c ("all", "cnv", "cnvGen")
@@ -112,7 +113,7 @@ f.make_test_input_all <- function (cnvData.ls, gsData.ls, assTestPar.ls)
 
 	f.getSamples <- function (class.ch, s2class.df)
 		{
-		SampleID <- Class <- NULL	## workaround for "no visible binding for global variable" note in 'R CMD check' output (due to next line of code)
+		SampleID <- Class <- NULL	# workaround for "no visible binding for global variable" note in 'R CMD check' output due to next line of code
 		return (unique (subset (s2class.df, select = SampleID, subset = Class == class.ch, drop = T)))
 		}
 	sample_byclass.ls <- lapply (classes.ls, f.getSamples, cnvData.ls$s2class)
@@ -136,13 +137,13 @@ f.make_test_input_cnv <- function (cnvData.ls, gsData.ls, assTestPar.ls)
 	classes.chv <- assTestPar.ls$test_classes
 	classes.ls  <- as.list (classes.chv)
 
-	SampleID <- Class <- NULL	## workaround for "no visible binding for global variable" note in 'R CMD check' output (due to next line of code)
+	SampleID <- Class <- NULL	# workaround for "no visible binding for global variable" note in 'R CMD check' output due to next line of code
 	s2class.df <- subset (cnvData.ls$full, select = c (SampleID, Class))
 	s2class.df <- s2class.df[! duplicated (s2class.df), ]
 
 	f.getSamples <- function (class.ch, s2class.df)
 		{
-		SampleID <- Class <- NULL	## workaround for "no visible binding for global variable" note in 'R CMD check' output (due to next line of code)
+		SampleID <- Class <- NULL	# workaround for "no visible binding for global variable" note in 'R CMD check' output due to next line of code
 		return (unique (subset (s2class.df, select = SampleID, subset = Class == class.ch, drop = T)))
 		}
 	sample_byclass.ls <- lapply (classes.ls, f.getSamples, s2class.df)
@@ -164,7 +165,7 @@ f.make_test_input_cnvGen <- function (cnvData.ls, gsData.ls, assTestPar.ls)
 	classes.chv <- assTestPar.ls$test_classes
 	classes.ls  <- as.list (classes.chv)
 
-	Gcount <- SampleID <- Class <- NULL	## workaround for "no visible binding for global variable" note in 'R CMD check' output (due to next line of code)
+	Gcount <- SampleID <- Class <- NULL	# workaround for "no visible binding for global variable" note in 'R CMD check' output due to next line of code
 	s2class.df <- subset (cnvData.ls$full, subset = Gcount > 0, select = c (SampleID, Class))
 	s2class.df <- s2class.df[! duplicated (s2class.df), ]
 
@@ -172,7 +173,7 @@ f.make_test_input_cnvGen <- function (cnvData.ls, gsData.ls, assTestPar.ls)
 
 	f.getSamples <- function (class.ch, s2class.df)
 		{
-		SampleID <- Class <- NULL	## workaround for "no visible binding for global variable" note in 'R CMD check' output (due to next line of code)
+		SampleID <- Class <- NULL	# workaround for "no visible binding for global variable" note in 'R CMD check' output due to next line of code
 		return (unique (subset (s2class.df, select = SampleID, subset = Class == class.ch, drop = T)))
 		}
 	sample_byclass.ls <- lapply (classes.ls, f.getSamples, s2class.df)

@@ -43,14 +43,14 @@ f.check_genedata <- function (geneData.ls)
 	
 f.test_genes <- function (cnvData.ls, assTestPar.ls)
 	{
-	Gcount <- GsID <- NULL	## workaround for "no visible binding for global variable" note in 'R CMD check' output (due to next line of code)
+	Gcount <- GsID <- NULL	# workaround for "no visible binding for global variable" note in 'R CMD check' output due to next line of code
 	cnv.df <- subset (cnvData.ls$full, subset = Gcount > 0, select = - GsID)
 	cnv.df <- cnv.df[! duplicated (cnv.df), ]
 	# refactor to exlude genes that were lost after filtering
 	cnv.df$Genes <- factor (cnv.df$Genes)
 
 	# sample counts at the gene level, for all genes
-	Genes <- Class <- NULL	## workaround for "no visible binding for global variable" note in 'R CMD check' output (due to next line of code)
+	Genes <- Class <- NULL	# workaround for "no visible binding for global variable" note in 'R CMD check' output due to next line of code
 	gcount.tab <- table (subset (cnv.df, select = c (Genes, Class)))
 	gcount.tab <- gcount.tab[, assTestPar.ls$test_classes]
 
@@ -62,11 +62,11 @@ f.test_genes <- function (cnvData.ls, assTestPar.ls)
 	totals.ls[["all"]] <- f.make_gene_totals (
 								cnvData.ls$s2class, 
 								assTestPar.ls$test_classes)
-	SampleID <- Class <- NULL	## workaround for "no visible binding for global variable" note in 'R CMD check' output (due to next lines of code)
+	SampleID <- Class <- NULL	# workaround for "no visible binding for global variable" note in 'R CMD check' output due to next lines of code
 	totals.ls[["cnv"]] <- f.make_gene_totals (
 								subset (cnvData.ls$full, select = c (SampleID, Class)), 
 								assTestPar.ls$test_classes)
-	Gcount <- SampleID <- Class <- NULL	## workaround for "no visible binding for global variable" note in 'R CMD check' output (due to next lines of code)
+	Gcount <- SampleID <- Class <- NULL	# workaround for "no visible binding for global variable" note in 'R CMD check' output due to next lines of code
 	totals.ls[["cnvGen"]] <- f.make_gene_totals (
 								subset (cnvData.ls$full, subset = Gcount > 0, select = c (SampleID, Class)), 
 								assTestPar.ls$test_classes)
@@ -112,7 +112,7 @@ f.fet_gene_unit <- function (counts.nv, totals.nv)
 f.gene_coverage_stats <- function (cnvData.ls, gsData.ls, geneData.ls)
 	{
 	gs_u.genes <- unique (unlist (gsData.ls$gs2gene))
-	Gcount <- Genes <- NULL	## workaround for "no visible binding for global variable" note in 'R CMD check' output (due to next lines of code)
+	Gcount <- Genes <- NULL	# workaround for "no visible binding for global variable" note in 'R CMD check' output due to next lines of code
 	cnv_u.genes <- unique (unlist (strsplit (subset (cnvData.ls$cnv, subset = Gcount > 0, select = Genes, drop = T), split = cnvData.ls$gsep)))
 	cnvf_u.genes <- unique (subset (cnvData.ls$full, subset = Gcount > 0, select = Genes, drop = T))
 	

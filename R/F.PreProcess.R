@@ -25,7 +25,7 @@ F.PreProcess <- function (cnvData.ls, gsData.ls)
 	# CNVs without genes must be kept, hence 'all = T'
 	# (mind that this will generate NA values)
 
-	Genes <- NULL	## workaround for "no visible binding for global variable" note in 'R CMD check' output (due to next line of code)
+	Genes <- NULL	# workaround for "no visible binding for global variable" note in 'R CMD check' output due to next line of code
 	cnv.df <- subset (cnvData.ls$cnv, select = - Genes)
 	m1.df <- merge (cnv.df, cnv2g.df, by = "CnvID", all = T)
 
@@ -89,7 +89,7 @@ f.check_cnv_s2class <- function (cnvData.ls)
 	if (length (setdiff (cnvData.ls$cnv$SampleID, cnvData.ls$s2class$SampleID)))
 		{stop ("some of the samples in 'cnvData.ls$cnv' are not in 'cnvData.ls$s2class'")}
 	}
-	
+
 f.check_gs <- function (gsData.ls)
 	{
 	if (length (setdiff (names (gsData.ls$gs2gene), names (gsData.ls$gs2name))))
@@ -167,7 +167,7 @@ f.filter <- function (full.df, cnvData.ls)
 	sel.ix <- match (full.df$Type, limsize.df$Type)
 	full.df$Max_length <- limsize.df$Max_length[sel.ix]
 	full.df$Max_gcount <- limsize.df$Max_gcount[sel.ix]
-	Length <- Max_length <- Gcount <- Max_gcount <- NULL	## workaround for "no visible binding for global variable" note in 'R CMD check' output (due to the next lines of code)
+	Length <- Max_length <- Gcount <- Max_gcount <- NULL	# workaround for "no visible binding for global variable" note in 'R CMD check' output (due to the next lines of code)
 	f.df <- subset (
 				full.df, 
 				Length < Max_length & Gcount < Max_gcount
@@ -179,7 +179,7 @@ f.filter <- function (full.df, cnvData.ls)
 
 f.rem_genes <- function (cnvData.ls)	
 	{
-	Genes <- CnvID <- NULL	## workaround for "no visible binding for global variable" note in 'R CMD check' output (due to next lines of code)
+	Genes <- CnvID <- NULL	# workaround for "no visible binding for global variable" note in 'R CMD check' output due to next lines of code
 	rem.cnvid <- subset (cnvData.ls$full, 
 					subset = Genes %in% cnvData.ls$filters$rem_genes, 
 					select = CnvID, drop = T)

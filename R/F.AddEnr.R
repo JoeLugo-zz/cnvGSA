@@ -94,7 +94,7 @@ f.add_attrib <- function (enr.df, cnvData.ls, attrib.name)
 
 	f.subsetByclass <- function (class.ch, cnv.df)
 		{
-		Class <- NULL	## workaround for "no visible binding for global variable" note in 'R CMD check' output (due to next line of code)
+		Class <- NULL	# workaround for "no visible binding for global variable" note in 'R CMD check' output due to next line of code
 		cnv_sub.df <- subset (cnv.df, subset = Class == class.ch)[, c (attrib.name, "GsID")]
 		colnames (cnv_sub.df)[1] <- "Attrib"
 		cnv_sub.df <- cnv_sub.df[! duplicated (cnv_sub.df), ]
@@ -131,7 +131,7 @@ f.rem_top <- function (enr.df, cnvData.ls, gsData.ls, geneData.ls, assTestPar.ls
 	rem.genes <- cnvData.ls$filters$rem_genes
 	
 	# reduce the data passed to the unit to enhance performance
-	Gcount <- SampleID <- Class <- GsID <- Genes <- CnvID <- NULL	## workaround for "no visible binding for global variable" note in 'R CMD check' output (due to next line of code)
+	Gcount <- SampleID <- Class <- GsID <- Genes <- CnvID <- NULL	# workaround for "no visible binding for global variable" note in 'R CMD check' output due to next line of code
 	cnv.df <- subset (cnvData.ls$full, subset = Gcount > 0, select = c (SampleID, Class, GsID, Genes, CnvID))
 	
 	top.genes <- sapply (gs2eg.ls, f.rem_top_topgene_unit, geneData.ls, rem.genes)
@@ -153,14 +153,14 @@ f.rem_top <- function (enr.df, cnvData.ls, gsData.ls, geneData.ls, assTestPar.ls
 
 f.rem_top_topgene_unit <- function (gs.genes, geneData.ls, rem.genes)
 	{
-	GeneID <- NULL	## workaround for "no visible binding for global variable" note in 'R CMD check' output (due to next line of code)
+	GeneID <- NULL	# workaround for "no visible binding for global variable" note in 'R CMD check' output due to next line of code
 	top.gene  <- as.character (subset (geneData.ls$gcounts, GeneID %in% gs.genes & ! GeneID %in% rem.genes, select = GeneID, drop = T)[1])
 	return (top.gene)
 	}
 
 f.rem_top_FET_unit <- function (gs.id, top.gene, cnv.df, rem.genes, totals.nv, classes.chv)
 	{
-	Genes <- CnvID <- SampleID <- Class <- GsID <- NULL	## workaround for "no visible binding for global variable" note in 'R CMD check' output (due to verbatim column names in sample() calls in the rest of the code here)
+	Genes <- CnvID <- SampleID <- Class <- GsID <- NULL	# workaround for "no visible binding for global variable" note in 'R CMD check' output (due to verbatim column names in sample() calls in the rest of the code here)
 	
 	# CNVs that carry the gene to be removed
 	cnv_topgene.id <- as.character (subset (cnv.df, subset = Genes %in% top.gene, select = CnvID, drop = T))
@@ -399,7 +399,7 @@ f.add_gstables <- function( enr.df, cnvData, geneData, gsep )
 	## Function that returns the table for a single gene-set
 	f.gstable_unit <- function( gsid, cnvData, gene2sy.df, gsep )
 	{
-		GsID <- NULL	## workaround for "no visible binding for global variable" note in 'R CMD check' output (due to next line of code)
+		GsID <- NULL	# workaround for "no visible binding for global variable" note in 'R CMD check' output due to next line of code
 		gstable <- subset( cnvData$full, GsID == gsid )
 
 		## Add column for gene symbols

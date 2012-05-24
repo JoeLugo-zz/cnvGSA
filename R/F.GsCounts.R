@@ -29,7 +29,7 @@ f.check_cnv_gs_preTest <- function (cnvData.ls)
 	{
 	if (is.null (cnvData.ls$full))
 	{stop ("'$full' is missing from 'cnvData.ls': check if the pre-processing function has been correctly executed")}
-	GsID <- NULL	## workaround for "no visible binding or global variable" note in 'R CMD check' output (due to next line of code)
+	GsID <- NULL	# workaround for "no visible binding or global variable" note in 'R CMD check' output due to next line of code
 	cnv2gs.df <- subset (cnvData.ls$full, subset = ! is.na (GsID))
 	if (length (setdiff (cnvData.ls$uni$class, cnv2gs.df$Class)))
 		{stop ("when restricting to CNVs mapped to gene-sets, one of the classes is not hit by CNV any more")}
@@ -66,7 +66,7 @@ f.make_table_cnv <- function (cnv.df)
 
 	# By (i) subsetting to SampleID, GsID and CnvID and (ii) pruning redundancies
 	# multiple counts will be generated only when multiple CNVs hit the same gene-set in the same sample
-	SampleID <- CnvID <- GsID <- NULL	## workaround for "no visible binding for global variable" note in 'R CMD check' output (due to next line of code)
+	SampleID <- CnvID <- GsID <- NULL	# workaround for "no visible binding for global variable" note in 'R CMD check' output due to next line of code
 	cnv.df <- subset (cnv.df, select = c (SampleID, CnvID, GsID))
 	cnv.df <- cnv.df[! duplicated (cnv.df), ]
 
@@ -81,7 +81,7 @@ f.make_table_chr <- function (cnv.df)
 
 	# By (i) subsetting to SampleID, GsID and Chr and (ii) pruning redundancies
 	# multiple counts will be generated only when multiple CNVs from distinct chromosomes hit the same gene-set in the same sample
-	SampleID <- Chr <- GsID <- NULL	## workaround for "no visible binding for global variable" note in 'R CMD check' output (due to next line of code)
+	SampleID <- Chr <- GsID <- NULL	# workaround for "no visible binding for global variable" note in 'R CMD check' output due to next line of code
 	cnv.df <- subset (cnv.df, select = c (SampleID, Chr, GsID))
 	cnv.df <- cnv.df[! duplicated (cnv.df), ]
 
@@ -96,12 +96,12 @@ f.make_table_bin <- function (cnv.df)
 
 	# By (i) subsetting to SampleID, GsID and (ii) pruning redundancies
 	# multiple counts will not be generated
-	SampleID <- GsID <- NULL	## workaround for "no visible binding for global variable" note in 'R CMD check' output (due to next line of code)
+	SampleID <- GsID <- NULL	# workaround for "no visible binding for global variable" note in 'R CMD check' output due to next line of code
 	cnv.df <- subset (cnv.df, select = c (SampleID, GsID))
 	cnv.df <- cnv.df[! duplicated (cnv.df), ]
 
 	s2gs.tab <- table (cnv.df[, c ("SampleID", "GsID")])
-	return (s2gs.tab)	
+	return (s2gs.tab)
 	}
 
 # This is an equivalent formulation
@@ -123,7 +123,7 @@ f.burden_gs_summaries <- function (cnvData.ls, gsData.ls)
 	# (all, cases, controls)
 	sampleset.ls <- list ()
 	sampleset.ls[[1]] <- cnvData.ls$s2class$SampleID
-	Class <- SampleID <- NULL	## workaround for "no visible binding for global variable" note in 'R CMD check' output (due to next line of code)
+	Class <- SampleID <- NULL	# workaround for "no visible binding for global variable" note in 'R CMD check' output due to next line of code
 	sampleset.ls[[2]] <- subset (cnvData.ls$s2class, subset = Class == cnvData.ls$uni$class[1], select = SampleID, drop = T)
 	sampleset.ls[[3]] <- subset (cnvData.ls$s2class, subset = Class == cnvData.ls$uni$class[2], select = SampleID, drop = T)
 	names (sampleset.ls) <- c ("All", cnvData.ls$uni$class)
@@ -151,10 +151,10 @@ f.burden_gs_coverage_bysample_unit <- function (set.samples, cnvData.ls)
 	coverage.nv[2] <- length (intersect (set.samples, cnvData.ls$cnv$SampleID))
 	coverage.nv[3] <- length (intersect (set.samples, cnvData.ls$full$SampleID))
 	coverage.nv[4] <- coverage.nv[3] / coverage.nv[1]
-	Gcount <- SampleID <- NULL	## workaround for "no visible binding for global variable" note in 'R CMD check' output (due to next line of code of code)
+	Gcount <- SampleID <- NULL	# workaround for "no visible binding for global variable" note in 'R CMD check' output due to next line of code of code
 	coverage.nv[5] <- length (intersect (set.samples, subset (cnvData.ls$full, subset = Gcount > 0, select = SampleID, drop = T)))
 	coverage.nv[6] <- coverage.nv[5] / coverage.nv[1]
-	GsID <- SampleID <- NULL	## workaround for "no visible binding for global variable" note in 'R CMD check' output (due to next line of code)
+	GsID <- SampleID <- NULL	# workaround for "no visible binding for global variable" note in 'R CMD check' output due to next line of code
 	coverage.nv[7] <- length (intersect (set.samples, subset (cnvData.ls$full, subset = ! is.na (GsID), select = SampleID, drop = T)))
 	coverage.nv[8] <- coverage.nv[7] / coverage.nv[1]
 
@@ -186,7 +186,7 @@ f.burden_gs_coverage_bygset_unit <- function (set.samples, cnvData.ls, gsData.ls
 	gs_tot.n <- length (gsData.ls$gs2gene)	
 
 	coverage.nv <- numeric ()
-	SampleID <- GsID <- NULL	## workaround for "no visible binding for global variable" note in 'R CMD check' output (due to next line of code)
+	SampleID <- GsID <- NULL	# workaround for "no visible binding for global variable" note in 'R CMD check' output due to next line of code
 	coverage.nv[1] <- length (unique (subset (cnvData.ls$full, subset = SampleID %in% set.samples, select = GsID, drop = T)))
 	coverage.nv[2] <- coverage.nv[1] / gs_tot.n	
 	

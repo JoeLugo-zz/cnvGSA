@@ -14,7 +14,7 @@ getCnvGenes <- function( cnv, genemap, delim )
 
 	.getCnvGenes <- function( cnv.Chr, cnv.Coord_i, cnv.Coord_f, genemap )
 	{
-		Chr <- Coord_f <- Coord_i <- GeneID <- NULL	## workaround for "no visible binding for global variable" note in 'R CMD check' output (due to next lines of code)
+		Chr <- Coord_f <- Coord_i <- GeneID <- NULL	# workaround for "no visible binding for global variable" note in 'R CMD check' output due to next lines of code
 		cnvGenes <- subset(
 			genemap,
 			(

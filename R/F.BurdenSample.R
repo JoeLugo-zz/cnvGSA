@@ -25,14 +25,14 @@ F.BurdenSample <- function (cnvData.ls, assTestPar.ls)
 	# REPORT_1
 
 	# Export filtered cnv data from $full
-	Genes <- GsID <- NULL	## workaround for "no visible binding for global variable" note in 'R CMD check' output (due to next line of code)
+	Genes <- GsID <- NULL	# workaround for "no visible binding for global variable" note in 'R CMD check' output due to next line of code
 	cnv.df <- subset (cnvData.ls$full, select = c (- Genes, - GsID))
 	cnv.df <- cnv.df[!duplicated (cnv.df), ]
 
 	# Separate cnv data by class
 	f.subset <- function (class.ch, cnv.df)
 		{
-		Class <- NULL	## workaround for "no visible binding for global variable" note in 'R CMD check' output (due to next line of code)
+		Class <- NULL	# workaround for "no visible binding for global variable" note in 'R CMD check' output due to next line of code
 		return (subset (cnv.df, Class == class.ch))
 		}
 	cnv.ls <- lapply (as.list (cnvData.ls$uni$class), f.subset, cnv.df)
@@ -92,10 +92,10 @@ f.check_cnv_postproc <- function (cnvData.ls)
 	{
 	if (is.null (cnvData.ls$full))
 		{stop ("'$full' is missing from 'cnvData.ls': check if the pre-processing function has been correctly executed")}
-	Class <- NULL	## workaround for "no visible binding for global variable" note in 'R CMD check' output (due to next line of code)
+	Class <- NULL	# workaround for "no visible binding for global variable" note in 'R CMD check' output due to next line of code
 	if (length (setdiff (cnvData.ls$uni$class, cnvData.ls$full$Class)))
 		{stop ("one of the classes is not hit by CNV any more")}
-	Class <- Gcount <- NULL	## workaround for "no visible binding for global variable" note in 'R CMD check' output (due to next line of code)
+	Class <- Gcount <- NULL	# workaround for "no visible binding for global variable" note in 'R CMD check' output due to next line of code
 	if (length (setdiff (cnvData.ls$uni$class, subset (cnvData.ls$full, select = Class, subset = Gcount > 0, drop = T))))
 		{stop ("one of the classes is not hit by genic CNV any more")}
 	if (length (unique (cnvData.ls$full$SampleID)) < 2)
@@ -249,7 +249,7 @@ f.burden_sample_prop_cnv <- function (cnv.ls, cnvData.ls)
 	sel1.n <- length (unique (cnv.ls[[1]]$SampleID))
 	sel2.n <- length (unique (cnv.ls[[2]]$SampleID))
 	
-	SampleID <- Class <- NULL	## workaround for "no visible binding for global variable" note in 'R CMD check' output (due to next lines of code)
+	SampleID <- Class <- NULL	# workaround for "no visible binding for global variable" note in 'R CMD check' output due to next lines of code
 	tot1.n <- length (unique (subset (cnvData.ls$s2class, select = SampleID, subset = Class == names (cnv.ls)[1], drop = T)))
 	tot2.n <- length (unique (subset (cnvData.ls$s2class, select = SampleID, subset = Class == names (cnv.ls)[2], drop = T)))
 	
@@ -269,7 +269,7 @@ f.burden_sample_prop_geniccnv <- function (cnv.ls, cnvData.ls)
 	sel1.n <- length (unique (cnv.ls[[1]]$SampleID))
 	sel2.n <- length (unique (cnv.ls[[2]]$SampleID))
 	
-	SampleID <- Class <- NULL	## workaround for "no visible binding for global variable" note in 'R CMD check' output (due to next lines of code)
+	SampleID <- Class <- NULL	# workaround for "no visible binding for global variable" note in 'R CMD check' output due to next lines of code
 	tot1.n <- length (unique (subset (cnvData.ls$full, select = SampleID, subset = Class == names (cnv.ls)[1], drop = T)))
 	tot2.n <- length (unique (subset (cnvData.ls$full, select = SampleID, subset = Class == names (cnv.ls)[2], drop = T)))
 	
