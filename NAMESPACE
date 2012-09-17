@@ -36,5 +36,5 @@ exportMethods(
 )
 
 ## Leave the following uncommented for debugging only
-exportPattern(".")
+#exportPattern(".")
 
