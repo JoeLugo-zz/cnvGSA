@@ -8,6 +8,6 @@ Maintainer: Joseph Lugo <joseph.r.lugo@gmail.com>
 Description: This package is intended to facilitate gene-set association with rare CNVs in case-control studies.
 License: LGPL
 LazyLoad: yes
-Depends: methods, brglm
+Depends: brglm, methods
 Suggests: cnvGSAdata, org.Hs.eg.db
 biocViews: MultipleComparison
