@@ -1,0 +1,40 @@
+
+import(methods)
+
+exportClasses(
+	CnvGSAInput,
+	CnvGSAOutput
+)
+
+export(
+	cnvGSAFisher,
+	cnvGSAexportBurdenStats,
+		
+	getCnvGenes,
+	readGMT,
+	readGVF,
+	readParamsRFile,
+
+	CnvGSAInput,
+	cnvData, "cnvData<-",
+	gsData, "gsData<-",
+	geneData, "geneData<-",
+	params, "params<-",
+	burdenSample,
+	burdenGs,
+	enrRes
+)
+	
+exportMethods(
+	cnvData, "cnvData<-",
+	gsData, "gsData<-",
+	geneData, "geneData<-",
+	params, "params<-",
+	burdenSample,
+	burdenGs,
+	enrRes
+)
+
+## Leave the following uncommented for debugging only
+#exportPattern(".")
+
