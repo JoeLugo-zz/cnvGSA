@@ -1,78 +1,93 @@
-
-##
-## CnvGSAInput
-##
+## --------------
+## CnvGSAInput S4 
+## --------------
 
 setClass( "CnvGSAInput",
 	representation(
-		cnvData = "list",
-		gsData = "list",
-		geneData = "list",
-		params = "list"
+		config.ls = "list",
+		params.ls = "list",
+		cnvData.ls = "list",
+		phData.ls = "list",
+		gsData.ls = "list"
 	)
 )
 
 # CnvGSAInput constructor
 CnvGSAInput <- function(
-					cnvData = list(),
-					gsData = list(),
-					geneData = list(),
-					params = list()
+					config.ls = list(),
+					params.ls = list(),
+					cnvData.ls = list(),
+					phData.ls = list(),
+					gsData.ls = list()
 				)
 {
-    new( "CnvGSAInput", cnvData = cnvData, gsData = gsData, geneData = geneData, params = params )
+    new( "CnvGSAInput", config.ls = config.ls, params.ls = params.ls, cnvData.ls = cnvData.ls, phData.ls = phData.ls, gsData.ls = gsData.ls )
 }
 
 # CnvGSAInput accessors
+setGeneric( "config.ls", function(obj) standardGeneric("config.ls") )
+setGeneric( "config.ls<-", function(obj, value) standardGeneric("config.ls<-") )
+setMethod( "config.ls", "CnvGSAInput", function(obj){ obj@config.ls } )
+setReplaceMethod( "config.ls", "CnvGSAInput", function(obj, value){ obj@config.ls <- value } )
 
-setGeneric( "cnvData", function(obj) standardGeneric("cnvData") )
-setGeneric( "cnvData<-", function(obj, value) standardGeneric("cnvData<-") )
-setMethod( "cnvData", "CnvGSAInput", function(obj){ obj@cnvData } )
-setReplaceMethod( "cnvData", "CnvGSAInput",	function(obj, value){ obj@cnvData <- value } )
+setGeneric( "params.ls", function(obj) standardGeneric("params.ls") )
+setGeneric( "params.ls<-", function(obj, value) standardGeneric("params.ls<-") )
+setMethod( "params.ls", "CnvGSAInput", function(obj){ obj@params.ls } )
+setReplaceMethod( "params.ls", "CnvGSAInput", function(obj, value){ obj@params.ls <- value } )
 
-setGeneric( "gsData", function(obj) standardGeneric("gsData") )
-setGeneric( "gsData<-", function(obj, value) standardGeneric("gsData<-") )
-setMethod( "gsData", "CnvGSAInput", function(obj){ obj@gsData } )
-setReplaceMethod( "gsData", "CnvGSAInput",	function(obj, value){ obj@gsData <- value } )
+setGeneric( "cnvData.ls", function(obj) standardGeneric("cnvData.ls") )
+setGeneric( "cnvData.ls<-", function(obj, value) standardGeneric("cnvData.ls<-") )
+setMethod( "cnvData.ls", "CnvGSAInput", function(obj){ obj@cnvData.ls } )
+setReplaceMethod( "cnvData.ls", "CnvGSAInput", function(obj, value){ obj@cnvData.ls <- value } )
 
-setGeneric( "geneData", function(obj) standardGeneric("geneData") )
-setGeneric( "geneData<-", function(obj, value) standardGeneric("geneData<-") )
-setMethod( "geneData", "CnvGSAInput", function(obj){ obj@geneData } )
-setReplaceMethod( "geneData", "CnvGSAInput",	function(obj, value){ obj@geneData <- value } )
+setGeneric( "phData.ls", function(obj) standardGeneric("phData.ls") )
+setGeneric( "phData.ls<-", function(obj, value) standardGeneric("phData.ls<-") )
+setMethod( "phData.ls", "CnvGSAInput", function(obj){ obj@phData.ls } )
+setReplaceMethod( "phData.ls", "CnvGSAInput", function(obj, value){ obj@phData.ls <- value } )
 
-setGeneric( "params", function(obj) standardGeneric("params") )
-setGeneric( "params<-", function(obj, value) standardGeneric("params<-") )
-setMethod( "params", "CnvGSAInput", function(obj){ obj@params } )
-setReplaceMethod( "params", "CnvGSAInput",	function(obj, value){ obj@params <- value } )
+setGeneric( "gsData.ls", function(obj) standardGeneric("gsData.ls") )
+setGeneric( "gsData.ls<-", function(obj, value) standardGeneric("gsData.ls<-") )
+setMethod( "gsData.ls", "CnvGSAInput", function(obj){ obj@gsData.ls } )
+setReplaceMethod( "gsData.ls", "CnvGSAInput", function(obj, value){ obj@gsData.ls <- value } )
 
-
-##
-## CnvGSAOutput
-##
+## ---------------
+## CnvGSAOutput S4
+## ---------------
 
 setClass( "CnvGSAOutput",
 	representation(
-		cnvData = "list",
-		burdenSample = "list",
-		burdenGs = "list",
-		geneData = "list",
-		enrRes = "list"
+		res.ls = "list",
+		gsTables.ls = "list",
+		gsData.ls = "list",
+		phData.ls = "list",
+		config.df = "list"
 	)
 )
 
+# CnvGSAOutput constructor
+CnvGSAOutput <- function(
+					res.ls = list(),
+					gsTables.ls = list(),
+					gsData.ls = list(),
+					phData.ls = list(),
+					config.df = list()
+				)
+{
+    new( "CnvGSAOutput", res.ls = res.ls, gsTables.ls = gsTables.ls, gsData.ls = gsData.ls, phData.ls = phData.ls, config.df = config.df)
+}
+
 # CnvGSAOutput accessors
+setGeneric( "res.ls", function(obj) standardGeneric("res.ls") )	## Already defined under CnvGSAInput accessors
+setMethod( "res.ls", "CnvGSAOutput", function(obj){ obj@res.ls } )
 
-#setGeneric( "cnvData", function(obj) standardGeneric("cnvData") )	## Already defined under CnvGSAInput accessors
-setMethod( "cnvData", "CnvGSAOutput", function(obj){ obj@cnvData } )
+setGeneric( "gsTables.ls", function(obj) standardGeneric("gsTables.ls") )
+setMethod( "gsTables.ls", "CnvGSAOutput", function(obj){ obj@gsTables.ls } )
 
-setGeneric( "burdenSample", function(obj) standardGeneric("burdenSample") )
-setMethod( "burdenSample", "CnvGSAOutput", function(obj){ obj@burdenSample } )
+setGeneric( "gsData.ls", function(obj) standardGeneric("gsData.ls") )
+setMethod( "gsData.ls", "CnvGSAOutput", function(obj){ obj@gsData.ls } )
 
-setGeneric( "burdenGs", function(obj) standardGeneric("burdenGs") )
-setMethod( "burdenGs", "CnvGSAOutput", function(obj){ obj@burdenGs } )
+setGeneric( "phData.ls", function(obj) standardGeneric("phData.ls") )
+setMethod( "phData.ls", "CnvGSAOutput", function(obj){ obj@phData.ls } )
 
-#setGeneric( "geneData", function(obj) standardGeneric("geneData") )	## Already defined under CnvGSAInput accessors
-setMethod( "geneData", "CnvGSAOutput", function(obj){ obj@geneData } )
-
-setGeneric( "enrRes", function(obj) standardGeneric("enrRes") )
-setMethod( "enrRes", "CnvGSAOutput", function(obj){ obj@enrRes } )
+setGeneric( "config.df", function(obj) standardGeneric("config.df") )
+setMethod( "config.df", "CnvGSAOutput", function(obj){ obj@config.df } )

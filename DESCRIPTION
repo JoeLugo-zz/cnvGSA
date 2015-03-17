@@ -1,13 +1,16 @@
-Package: cnvGSA
+Package: cnvGSAdev                                                              
 Type: Package
 Title: Gene Set Analysis of (Rare) Copy Number Variants
 Version: 1.11.1
 Date: 2015-03-02
-Author: Daniele Merico <daniele.merico@gmail.com> & Robert Ziman <rziman@gmail.com>; packaged by Joseph Lugo <joseph.r.lugo@gmail.com> 
-Maintainer: Joseph Lugo <joseph.r.lugo@gmail.com> 
-Description: This package is intended to facilitate gene-set association with rare CNVs in case-control studies.
+Authors@R: c(
+        person("Daniele", "Merico", email = "daniele.merico@gmail.com", role = "
+        person("Robert", "Ziman", email = "rziman@gmail.com", role = "aut"),
+        person("Joseph", "Lugo", email = "joseph.r.lugo@gmail.com", role = "cre"
+        )
+Description: This package is intended to facilitate gene-set association with ra
 License: LGPL
 LazyLoad: yes
-Depends: brglm, methods
+Depends: brglm, GenomicRanges, methods
 Suggests: cnvGSAdata, org.Hs.eg.db
 biocViews: MultipleComparison

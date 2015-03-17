@@ -1,40 +1,40 @@
-
-import(methods)
+import(methods)                                                                                                                                        
+importMethodsFrom(GenomicRanges, findOverlaps)
+importClassesFrom(GenomicRanges, GRanges)
+importMethodsFrom(GenomicRanges, as.data.frame)
 
 exportClasses(
-	CnvGSAInput,
-	CnvGSAOutput
+        CnvGSAOutput,
+        CnvGSAInput
 )
 
 export(
-	cnvGSAFisher,
-	cnvGSAexportBurdenStats,
-		
-	getCnvGenes,
-	readGMT,
-	readGVF,
-	readParamsRFile,
+        cnvGSAlogRegTest,
+        cnvGSAgsTables,
+        cnvGSAIn,
 
-	CnvGSAInput,
-	cnvData, "cnvData<-",
-	gsData, "gsData<-",
-	geneData, "geneData<-",
-	params, "params<-",
-	burdenSample,
-	burdenGs,
-	enrRes
+        f.enrFiles,
+        f.makeViz,
+
+        CnvGSAInput,
+        config.ls, "config.ls<-",
+        params.ls, "params.ls<-",
+        cnvData.ls, "cnvData.ls<-",
+        phData.ls, "phData.ls<-",
+        gsData.ls, "gsData.ls<-",
+        CnvGSAOutput,
+        res.ls,
+        gsTables.ls,
+        config.df
 )
-	
+
 exportMethods(
-	cnvData, "cnvData<-",
-	gsData, "gsData<-",
-	geneData, "geneData<-",
-	params, "params<-",
-	burdenSample,
-	burdenGs,
-	enrRes
+        config.ls, "config.ls<-",
+        params.ls, "params.ls<-",
+        cnvData.ls, "cnvData.ls<-",
+        phData.ls, "phData.ls<-",
+        gsData.ls, "gsData.ls<-",
+        res.ls,
+        gsTables.ls,
+        config.df
 )
-
-## Leave the following uncommented for debugging only
-#exportPattern(".")
-

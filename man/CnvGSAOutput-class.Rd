@@ -4,45 +4,41 @@
 
 \alias{CnvGSAOutput}
 \alias{CnvGSAOutput-class}
-%\alias{cnvData}
-\alias{cnvData,CnvGSAOutput-method}
-\alias{burdenSample}
-\alias{burdenSample,CnvGSAOutput-method}
-\alias{burdenGs}
-\alias{burdenGs,CnvGSAOutput-method}
-%\alias{geneData}
-\alias{geneData,CnvGSAOutput-method}
-\alias{enrRes}
-\alias{enrRes,CnvGSAOutput-method}
-\title{Class \code{"CnvGSAOutput"}}
+%\alias{phData.ls}
+\alias{phData.ls,CnvGSAOutput-method}
+\alias{res.ls}
+\alias{res.ls,CnvGSAOutput-method}
+\alias{gsTables.ls}
+\alias{gsTables.ls,CnvGSAOutput-method}
+%\alias{gsData.ls}
+\alias{gsData.ls,CnvGSAOutput-method}
+\alias{config.df}
+\alias{config.df,CnvGSAOutput-method}
 
+\title{Class \code{"CnvGSAOutput"}}
 \description{
 Container class for the output structures produced by the main function (i.e. cnvGSA.Fisher()).
 }
 \section{Slots}{
   \describe{
-    \item{\code{cnvData}:}{Object of class \code{"list"} containing original and filtered CNV data}
-    \item{\code{burdenSample}:}{Object of class \code{"list"} containing burden analysis results for objects}
-    \item{\code{burdenGs}:}{Object of class \code{"list"} containing burden analysis results for gene-sets}
-    \item{\code{geneData}:}{Object of class \code{"list"} containing gene-centric statistics}
-    \item{\code{enrRes}:}{Object of class \code{"list"} containing the gene-set enrichment results}
+    \item{\code{phData.ls}:}{Object of class \code{"list"} containing phenotype and covariate data}
+    \item{\code{res.ls}:}{Object of class \code{"list"} containing burden analysis results for gene-sets}
+    \item{\code{gsTables.ls}:}{Object of class \code{"list"} containing the gene-set tables}
+    \item{\code{gsData.ls}:}{Object of class \code{"list"} containing gene-set data}
+    \item{\code{config.df}:}{Object of class \code{"list"} containing config data frame}
   }
 }
 \section{Methods}{
   \describe{
-    \item{burdenGs}{\code{signature(obj = "CnvGSAOutput")}: Gets \code{burdenGs}.}
-    \item{burdenSample}{\code{signature(obj = "CnvGSAOutput")}: Gets \code{burdenSample}.}
-    \item{cnvData}{\code{signature(obj = "CnvGSAOutput")}: Gets \code{cnvData}.}
-    \item{enrRes}{\code{signature(obj = "CnvGSAOutput")}: Gets \code{enrRes}.}
-    \item{geneData}{\code{signature(obj = "CnvGSAOutput")}: Gets \code{geneData}.}
-    \item{summary}{\code{signature(object = "CnvGSAOutput")}: Prints out several summary statistics.}
+    \item{gsTables.ls}{\code{signature(obj = "CnvGSAOutput")}: Gets \code{gsTables.ls}.}
+    \item{res.ls}{\code{signature(obj = "CnvGSAOutput")}: Gets \code{res.ls}.}
+    \item{phData.ls}{\code{signature(obj = "CnvGSAOutput")}: Gets \code{phData.ls}.}
+    \item{config.df}{\code{signature(obj = "CnvGSAOutput")}: Gets \code{config.df}.}
+    \item{gsData.ls}{\code{signature(obj = "CnvGSAOutput")}: Gets \code{gsData.ls}.}
   }
 }
-\author{Robert Ziman \email{rziman@gmail.com}}
+\author{Joseph Lugo \email{joseph.r.lugo@gmail.com}}
 \examples{
-## See vignette for full discussion of output elements
-library("cnvGSAdata")
-data("cnvGSA_output_example")
-slotNames("output")
+## See vignette for full details and worked example
 }
 \keyword{classes}
