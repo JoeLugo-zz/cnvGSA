@@ -1,4 +1,4 @@
-Package: cnvGSAdev                                                              
+Package: cnvGSA                                                              
 Type: Package
 Title: Gene Set Analysis of (Rare) Copy Number Variants
 Version: 1.11.1
