@@ -37,7 +37,6 @@ f.enrFiles <- function(cnvGSA.out)
 	enrGeneric$GsID <- as.factor(enrGeneric$GsID); enrGeneric$GsName <- as.factor(enrGeneric$GsName);
 
 	# MAKING GMT FILE
-	gs_sel_U.df <- cnvGSA.out@gsData.ls$gs_sel_U.df
 	gs.ls       <- cnvGSA.out@gsData.ls$gs.ls
 	gs_info.df  <- cnvGSA.out@gsData.ls$gs_info.df
 
@@ -56,7 +55,7 @@ f.enrFiles <- function(cnvGSA.out)
 
 	names(gsGenes.ls) <- gs_info.df$GsID
 	diff              <- setdiff(names(gsGenes.ls),as.character(enrGeneric$GsID))
-	gsGenes.ls        <- gsGenes.ls[which(!(names(gsGenes.ls) %in% diff))]
+	gsGenes.ls        <- gsGenes.ls[which(!(names(gsGenes.ls) %in% diff))] # make sure all gene-sets in gmt file are in generic file
 
 	f.collapse <- function (input.genes){
         paste (input.genes, collapse = "\t")
@@ -72,47 +71,6 @@ f.enrFiles <- function(cnvGSA.out)
     setwd(outputPathEnr)
 	write.table(enrGeneric,file="enrGeneric.txt",row.names=FALSE,sep="\t",quote=FALSE)
 	f.PackGMT(id2eg.ls = gsGenes.ls, id2des.chv = gs_info.df$GsName, file.name = "enr.gmt")
-
-	# lis 	   <- lapply(gs.ls,setdiff,filt.ls)
-	# gsGenes.ls <- lis
-	# for (i in 1:length(gs.ls))
-	# {
-	# 	# filters the genes in the gene sets
-	# 	currentGs <- lis[[i]][1:length(lis[[i]])]
-	# 	if(filtGs == "YES"){
-	# 		gsGenes.ls[[i]] <- currentGs[which(currentGs %in% filt.ls)]
-	# 	}
-	# 	else {
-	# 		gsGenes.ls[[i]] <- currentGs
-	# 	}
-	# }
-
-	# lenGS <- unlist(lapply(1:length(gsGenes.ls),function(x) length(gsGenes.ls[[x]])))
-	# maxGS <- max(lenGS)
-	# extra_cols.df <- as.data.frame(matrix(NA,nrow=length(gsGenes.ls),ncol=maxGS))
-	# gst_info.df   <- cbind(gs_info.df,extra_cols.df)
-
-	# for (i in 1:length(gs.ls))
-	# {
-	# 	# populates gst_info.df with the genes from the list
-	# 	currentGs <- gsGenes.ls[[i]][1:length(gsGenes.ls[[i]])]
-	# 	gsLength  <- length(currentGs)
-	# 	gst_info.df[i,5:gsLength] <- currentGs
-	# }
-
-	# diff <- setdiff(as.character(gst_info.df$GsID),as.character(enrGeneric$GsID))
-	# gst_info.df <- gst_info.df[which(!(gst_info.df$GsID %in% diff)),]
-	# gst_info.df <- subset(gst_info.df,select= -c(GsKey,GsSize))
-	
-	# write.table(gst_info.df,file=paste("gst_info.gmt",sep=""),sep="\t",row.names=FALSE,quote=FALSE,col.names=FALSE)
-	# enr.ls <- list(enrGeneric,gst_info.df)
-	# names(enr.ls) <- list("enrGeneric.df","enrGMT.df")
-	# return(enr.ls)
 }
 
 # f.enrFiles(cnvGSA.out)
-# f.enrFiles(configPath = "/Users/josephlugo/Documents/R/PGC2_test/R_Works/",configFile = "PGC2_config.txt",cnvGSA.out)
-
-# gst_info.mx <- as.matrix(gst_info.df)
-# gst_info.mx[which(is.na(gst_info.df)==TRUE)] <- ""
-# gst_info.df <- as.data.frame(gst_info.mx)
