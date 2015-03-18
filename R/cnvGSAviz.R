@@ -42,6 +42,7 @@ f.makeViz <- function(cnvGSA.in,cnvGSA.out)
 
 	config.df <- cnvGSA.out@config.df
 
+	Kl            <- config.df[config.df$param == "Kl","value"]
 	FDRThreshold  <- as.numeric(config.df[config.df$param == "FDRThreshold","value"])
 	gsList        <- config.df[config.df$param == "gsList","value"]
 	cnvType       <- config.df[config.df$param == "cnvType","value"]
@@ -64,9 +65,6 @@ f.makeViz <- function(cnvGSA.in,cnvGSA.out)
 	if (length(gsList) == 0){
 		stop("No gsList in the gene list.")
 	}
-
-	resObjectKly <- get(paste("covAll_chipAll_",cnvType,"_KLy.df",sep=""),res.ls)
-	resObjectKln <- get(paste("covAll_chipAll_",cnvType,"_KLn.df",sep=""),res.ls)
 
 	gs_len.nv <- sapply (gs_all.ls, length)
 
@@ -94,56 +92,81 @@ f.makeViz <- function(cnvGSA.in,cnvGSA.out)
 	write.table (z_olp.df, col.names = T, row.names = F, sep = "\t", quote = F, file = paste("GsOverlap_NeurofSynaptic.txt",sep=""))
 
 	# cnvType: NEUROFUNCTION + SYNAPTIC
-
 	z_set.gsid   <- gsList
 	z_set.labels <- paste (z_set.gsid, gs_len.nv[z_set.gsid], sep = ": ")
-	z_set1.df    <- resObjectKly[match (z_set.gsid, resObjectKly$GsID), ]
-	z_set2.df    <- resObjectKln[match (z_set.gsid, resObjectKln$GsID), ]
-	z_set1.col   <- rep ("gray30", length (z_set.gsid))
-	z_set2.col   <- rep ("gray30", length (z_set.gsid))
-	z_set1.col[which (z_set1.df$FDR_BH_U <= FDRThreshold)] <- "brown" # let user pick this threshold
-	z_set2.col[which (z_set2.df$FDR_BH_U <= FDRThreshold)] <- "brown" 
+
+	if (Kl == "ALL"){
+		z_set1.col   <- rep ("gray30", length (z_set.gsid))
+		z_set2.col   <- rep ("gray30", length (z_set.gsid))
+		resObjectKly <- get(paste("covAll_chipAll_",cnvType,"_KLy.df",sep=""),res.ls)
+		resObjectKln <- get(paste("covAll_chipAll_",cnvType,"_KLn.df",sep=""),res.ls)
+		z_set1.df    <- resObjectKly[match (z_set.gsid, resObjectKly$GsID), ]
+		z_set2.df    <- resObjectKln[match (z_set.gsid, resObjectKln$GsID), ]
+		height_U.mx <- matrix (data = c (z_set1.df$Pvalue_U_dev_s, z_set2.df$Pvalue_U_dev_s), nrow = 2, byrow = T)
+		height_Uc.mx <- matrix (data = c (z_set1.df$Coeff_U, z_set2.df$Coeff_U), nrow = 2, byrow = T)
+		z_set1.col[which (z_set1.df$FDR_BH_U <= FDRThreshold)] <- "brown"
+		z_set2.col[which (z_set2.df$FDR_BH_U <= FDRThreshold)] <- "brown" 
+		border.vc <- c (z_set1.col, z_set2.col)
+		nc.vc <- z_set1.col
+	} else if (Kl == "YES"){
+		z_set1.col   <- rep ("gray30", length (z_set.gsid))
+		resObjectKly <- get(paste("covAll_chipAll_",cnvType,"_KLy.df",sep=""),res.ls)
+		z_set1.df    <- resObjectKly[match (z_set.gsid, resObjectKly$GsID), ]
+		height_U.mx <- matrix (data = c (z_set1.df$Pvalue_U_dev_s), nrow = 1, byrow = T)
+		height_Uc.mx <- matrix (data = c (z_set1.df$Coeff_U), nrow = 1, byrow = T)
+		z_set1.col[which (z_set1.df$FDR_BH_U <= FDRThreshold)] <- "brown"
+		border.vc <- c (z_set1.col)
+		nc.vc <- z_set1.col
+	} else if (Kl == "NO"){
+		z_set2.col   <- rep ("gray30", length (z_set.gsid))
+		resObjectKln <- get(paste("covAll_chipAll_",cnvType,"_KLn.df",sep=""),res.ls)
+		z_set2.df    <- resObjectKln[match (z_set.gsid, resObjectKln$GsID), ]
+		height_U.mx <- matrix (data = c (z_set2.df$Pvalue_U_dev_s), nrow = 1, byrow = T)
+		height_Uc.mx <- matrix (data = c (z_set2.df$Coeff_U), nrow = 1, byrow = T)
+		z_set2.col[which (z_set2.df$FDR_BH_U <= FDRThreshold)] <- "brown" 
+		border.vc <- c (z_set2.col)
+		nc.vc <- z_set2.col
+	}
+
 	# leave this as default and let the user change if they want to 
 	pdf(paste(cnvType,"_NeurofSyn_Significance_U.pdf",sep=""))
-	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,3,0), lwd = 2) # controls the margins of the graph
-	height_U.mx <- matrix (data = c (z_set1.df$Pvalue_U_dev_s, z_set2.df$Pvalue_U_dev_s), nrow = 2, byrow = T)
+	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,1,0), lwd = 2) # controls the margins of the graph
 	barplot (
 		main = paste(cnvType,": Neurof+Synaptic: Significance: U - ",sep=""),
 		height = height_U.mx,
-		names.arg = z_set.labels, ylim = c (min (height_U.mx), max (height_U.mx)), cex.names = labelSize,
+		names.arg = z_set.labels, ylim = c (min (0,height_U.mx), ceiling(max (height_U.mx))), cex.names = labelSize,
 		beside = T, las = 2, col = rep (c ("gray60", "gray90"), times = length (z_set.labels)), 
-		border = as.character (matrix (data = c (z_set1.col, z_set2.col), ncol = length (z_set1.col), byrow = T)),
+		border = as.character (matrix (data = border.vc, ncol = length (nc.vc), byrow = T)),
 		ylab = "-Log (Dev P-value) * sign (Coeff)")
 	dev.off()
 
-	z_set1.col    <- rep ("gray30", length (z_set.gsid))
-	z_set2.col    <- rep ("gray30", length (z_set.gsid))
-	z_set1.col[which (z_set1.df$FDR_BH_U <= FDRThreshold)] <- "brown"
-	z_set2.col[which (z_set2.df$FDR_BH_U <= FDRThreshold)] <- "brown" 
 	pdf(paste(cnvType,"_NeurofSyn_EffectSize_U.pdf",sep=""))
-	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,3,0), lwd = 2)
-	height_Uc.mx <- matrix (data = c (z_set1.df$Coeff_U, z_set2.df$Coeff_U), nrow = 2, byrow = T)
+	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,1,0), lwd = 2)
 	barplot (
 		main = paste(cnvType,": Neurof+Synaptic: Effect Size: U",sep=""),
 		height = height_Uc.mx,
-		names.arg = z_set.labels, ylim = c (min (height_Uc.mx), max (height_Uc.mx)), cex.names = labelSize,
+		names.arg = z_set.labels, ylim = c (min (0,height_Uc.mx), ceiling(max (height_Uc.mx))), cex.names = labelSize,
 		beside = T, las = 2, col = rep (c ("gray60", "gray90"), times = length (z_set.labels)), 
-		border = as.character (matrix (data = c (z_set1.col, z_set2.col), ncol = length (z_set1.col), byrow = T)),
+		border = as.character (matrix (data = border.vc, ncol = length (nc.vc), byrow = T)),
 		ylab = "Coeff")
 	dev.off()
 
 	z_set.gsid   <- gsList
 	z_set.labels <- paste (z_set.gsid, gs_len.nv[z_set.gsid], sep = ": ")
-	z_set1.df    <- resObjectKly[match (z_set.gsid, resObjectKly$GsID), ]
-	z_set2.df    <- resObjectKln[match (z_set.gsid, resObjectKln$GsID), ]
 	z_col.names  <- c ("SZ_g1n", "CT_g1n", "SZ_g2n", "CT_g2n", "SZ_g3n", "CT_g3n")
 	pdf(paste(cnvType,"_NeurofSyn_Support.pdf",sep=""))
-	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,3,0), lwd = 1)
-	height_s.mx <- rbind (t (z_set1.df[, z_col.names]), t (z_set2.df[, z_col.names]))
+	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,1,0), lwd = 1)
+	if (Kl == "ALL"){
+		height_s.mx <- rbind (t (z_set1.df[, z_col.names]), t (z_set2.df[, z_col.names]))
+	} else if (Kl == "YES"){
+		height_s.mx <- t (z_set1.df[, z_col.names])
+	} else if (Kl == "NO"){
+		height_s.mx <- t (z_set2.df[, z_col.names])
+	}
 	barplot (
 		main = paste(cnvType,": Neurof+Synaptic: Support",sep=""),
 		height = height_s.mx,
-		names.arg = z_set.labels, ylim = c (0, 8), cex.names = labelSize, 
+		names.arg = z_set.labels, ylim = c (min(0,height_s.mx), max(height_s.mx)), cex.names = labelSize, 
 		beside = T, las = 2, col = rep (c ("salmon", "skyblue"), times = length (z_set.labels)), 
 		border = "gray30",
 		ylab = "SZ and CT subject %")
@@ -151,56 +174,97 @@ f.makeViz <- function(cnvGSA.in,cnvGSA.out)
 
 	z_set.gsid     <- gsList
 	z_set.labels   <- paste (z_set.gsid, gs_len.nv[z_set.gsid], sep = ": ")
-	z_set1.df      <- resObjectKly[match (z_set.gsid, resObjectKly$GsID), ]
-	z_set2.df      <- resObjectKln[match (z_set.gsid, resObjectKln$GsID), ]
-	height_U.mx    <- matrix (data = c (z_set1.df$Pvalue_U_dev_s, z_set2.df$Pvalue_U_dev_s), nrow = 2, byrow = T)
-	height_TL.mx   <- matrix (data = c (z_set1.df$Pvalue_TL_dev_s, z_set2.df$Pvalue_TL_dev_s), nrow = 2, byrow = T)
-	height_CNML.mx <- matrix (data = c (z_set1.df$Pvalue_CNML_dev_s, z_set2.df$Pvalue_CNML_dev_s), nrow = 2, byrow = T)
+
+	if (Kl == "ALL"){
+		z_set1_U.col    <- rep ("gray30", length (z_set.gsid))
+		z_set2_U.col    <- rep ("gray30", length (z_set.gsid))
+		z_set1_TL.col    <- rep ("gray30", length (z_set.gsid))
+		z_set2_TL.col    <- rep ("gray30", length (z_set.gsid))
+		z_set1_CNML.col    <- rep ("gray30", length (z_set.gsid))
+		z_set2_CNML.col    <- rep ("gray30", length (z_set.gsid))
+		height_U.mx    <- matrix (data = c (z_set1.df$Pvalue_U_dev_s, z_set2.df$Pvalue_U_dev_s), nrow = 2, byrow = T)
+		height_TL.mx   <- matrix (data = c (z_set1.df$Pvalue_TL_dev_s, z_set2.df$Pvalue_TL_dev_s), nrow = 2, byrow = T)
+		height_CNML.mx <- matrix (data = c (z_set1.df$Pvalue_CNML_dev_s, z_set2.df$Pvalue_CNML_dev_s), nrow = 2, byrow = T)
+		z_set1_U.col[which (z_set1.df$FDR_BH_U <= FDRThreshold)] <- "brown"
+		z_set2_U.col[which (z_set2.df$FDR_BH_U <= FDRThreshold)] <- "brown" 
+		z_set1_TL.col[which (z_set1.df$FDR_BH_TL <= FDRThreshold)] <- "brown"
+		z_set2_TL.col[which (z_set2.df$FDR_BH_TL <= FDRThreshold)] <- "brown" 
+		z_set1_CNML.col[which (z_set1.df$FDR_BH_CNML <= FDRThreshold)] <- "brown"
+		z_set2_CNML.col[which (z_set2.df$FDR_BH_CNML <= FDRThreshold)] <- "brown" 
+		border_U.vc <- c (z_set1_U.col, z_set2_U.col)
+		border_TL.vc <- c (z_set1_TL.col, z_set2_TL.col)
+		border_CNML.vc <- c (z_set1_CNML.col, z_set2_CNML.col)
+		nc_U.vc <- z_set1_U.col
+		nc_TL.vc <- z_set1_TL.col
+		nc_CNML.vc <- z_set1_CNML.col
+	} else if (Kl == "YES"){
+		z_set1_U.col    <- rep ("gray30", length (z_set.gsid))
+		z_set1_TL.col    <- rep ("gray30", length (z_set.gsid))
+		z_set1_CNML.col    <- rep ("gray30", length (z_set.gsid))
+		height_U.mx    <- matrix (data = c (z_set1.df$Pvalue_U_dev_s), nrow = 1, byrow = T)
+		height_TL.mx   <- matrix (data = c (z_set1.df$Pvalue_TL_dev_s), nrow = 1, byrow = T)
+		height_CNML.mx <- matrix (data = c (z_set1.df$Pvalue_CNML_dev_s), nrow = 1, byrow = T)
+		z_set1_U.col[which (z_set1.df$FDR_BH_U <= FDRThreshold)] <- "brown"
+		border_U.vc <- c (z_set1_U.col)
+		z_set1_TL.col[which (z_set1.df$FDR_BH_TL <= FDRThreshold)] <- "brown"
+		border_TL.vc <- c (z_set1_TL.col)
+		z_set1_CNML.col[which (z_set1.df$FDR_BH_CNML <= FDRThreshold)] <- "brown"
+		border_CNML.vc <- c (z_set1_CNML.col)
+		nc_U.vc <- z_set1_U.col
+		nc_TL.vc <- z_set1_TL.col
+		nc_CNML.vc <- z_set1_CNML.col
+	} else if (Kl == "NO"){
+		z_set2_U.col    <- rep ("gray30", length (z_set.gsid))
+		z_set2_TL.col    <- rep ("gray30", length (z_set.gsid))
+		z_set2_CNML.col    <- rep ("gray30", length (z_set.gsid))
+		height_U.mx    <- matrix (data = c (z_set2.df$Pvalue_U_dev_s), nrow = 1, byrow = T)
+		height_TL.mx   <- matrix (data = c (z_set2.df$Pvalue_TL_dev_s), nrow = 1, byrow = T)
+		height_CNML.mx <- matrix (data = c (z_set2.df$Pvalue_CNML_dev_s), nrow = 1, byrow = T)
+		z_set2_U.col[which (z_set2.df$FDR_BH_U <= FDRThreshold)] <- "brown"
+		border_U.vc <- c (z_set2_U.col)
+		z_set2_TL.col[which (z_set2.df$FDR_BH_TL <= FDRThreshold)] <- "brown"
+		border_TL.vc <- c (z_set2_TL.col)
+		z_set2_CNML.col[which (z_set2.df$FDR_BH_CNML <= FDRThreshold)] <- "brown"
+		border_CNML.vc <- c (z_set2_CNML.col)
+		nc_U.vc <- z_set2_U.col
+		nc_TL.vc <- z_set2_TL.col
+		nc_CNML.vc <- z_set2_CNML.col
+	}
 	min.n          <- min (c (min (height_U.mx), min (height_TL.mx), min (height_CNML.mx)))
 	max.n          <- max (c (max (height_U.mx), max (height_TL.mx), max (height_CNML.mx)))
 
 	z_set1.col    <- rep ("gray30", length (z_set.gsid))
 	z_set2.col    <- rep ("gray30", length (z_set.gsid))
-	z_set1.col[which (z_set1.df$FDR_BH_U <= FDRThreshold)] <- "brown"
-	z_set2.col[which (z_set2.df$FDR_BH_U <= FDRThreshold)] <- "brown" 
 	pdf(paste(cnvType,"_NeurofSyn_Significance_Compare_U.pdf",sep=""))
-	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,3,0), lwd = 2)
+	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,1,0), lwd = 2)
 	barplot (
 		main = paste(cnvType,": Neurof+Synaptic: Compare Significance: U",sep=""),
 		height = height_U.mx,
-		names.arg = z_set.labels, ylim = c (min.n, max.n), cex.names = labelSize,
+		names.arg = z_set.labels, ylim = c (min(0,min.n), ceiling(max.n)), cex.names = labelSize,
 		beside = T, las = 2, col = rep (c ("gray60", "gray90"), times = length (z_set.labels)), 
-		border = as.character (matrix (data = c (z_set1.col, z_set2.col), ncol = length (z_set1.col), byrow = T)),
+		border = as.character (matrix (data = border_U.vc, ncol = length (nc_U.vc), byrow = T)),
 		ylab = "-Log (Dev P-value) * sign (Coeff)")
 	dev.off()
 
-	z_set1.col    <- rep ("gray30", length (z_set.gsid))
-	z_set2.col    <- rep ("gray30", length (z_set.gsid))
-	z_set1.col[which (z_set1.df$FDR_BH_TL <= FDRThreshold)] <- "brown"
-	z_set2.col[which (z_set2.df$FDR_BH_TL <= FDRThreshold)] <- "brown" 
 	pdf(paste(cnvType,"_NeurofSyn_Significance_Compare_TL.pdf",sep=""))
-	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,3,0), lwd = 2)
+	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,1,0), lwd = 2)
 	barplot (
 		main = paste(cnvType,": Neurof+Synaptic: Compare Significance: TL",sep=""),
 		height = height_TL.mx,
-		names.arg = z_set.labels, ylim = c (min.n, max.n), cex.names = labelSize,
+		names.arg = z_set.labels, ylim = c (min(0,min.n), ceiling(max.n)), cex.names = labelSize,
 		beside = T, las = 2, col = rep (c ("gray60", "gray90"), times = length (z_set.labels)), 
-		border = as.character (matrix (data = c (z_set1.col, z_set2.col), ncol = length (z_set1.col), byrow = T)),
+		border = as.character (matrix (data = border_TL.vc, ncol = length (nc_TL.vc), byrow = T)),
 		ylab = "-Log (Dev P-value) * sign (Coeff)")
 	dev.off()
 
-	z_set1.col    <- rep ("gray30", length (z_set.gsid))
-	z_set2.col    <- rep ("gray30", length (z_set.gsid))
-	z_set1.col[which (z_set1.df$FDR_BH_CNML <= FDRThreshold)] <- "brown"
-	z_set2.col[which (z_set2.df$FDR_BH_CNML <= FDRThreshold)] <- "brown" 
 	pdf(paste(cnvType,"_NeurofSyn_Significance_Compare_CNML.pdf",sep=""))
-	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,3,0), lwd = 2)
+	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,1,0), lwd = 2)
 	barplot (
 		main = paste(cnvType,": Neurof+Synaptic: Compare Significance: CNML",sep=""),
 		height = height_CNML.mx,
-		names.arg = z_set.labels, ylim = c (min.n, max.n), cex.names = labelSize,
+		names.arg = z_set.labels, ylim = c (min(0,min.n), ceiling(max.n)), cex.names = labelSize,
 		beside = T, las = 2, col = rep (c ("gray60", "gray90"), times = length (z_set.labels)), 
-		border = as.character (matrix (data = c (z_set1.col, z_set2.col), ncol = length (z_set1.col), byrow = T)),
+		border = as.character (matrix (data = border_CNML.vc, ncol = length (nc_CNML.vc), byrow = T)),
 		ylab = "-Log (Dev P-value) * sign (Coeff)")
 	dev.off()
 
@@ -226,35 +290,35 @@ f.makeViz <- function(cnvGSA.in,cnvGSA.out)
 
 	z_set.labels <- paste (z_set.gsid, gs_len.nv[z_set.gsid], sep = ": ")
 
-	z_set1.df     <- resObjectKly[match (z_set.gsid, resObjectKly$GsID), ]
-	z_set2.df     <- resObjectKln[match (z_set.gsid, resObjectKln$GsID), ]
-	z_set1.col    <- rep ("gray30", length (z_set.gsid))
-	z_set2.col    <- rep ("gray30", length (z_set.gsid))
-	z_set1.col[which (z_set1.df$FDR_BH_U <= 0.1)] <- "brown"
-	z_set2.col[which (z_set2.df$FDR_BH_U <= 0.1)] <- "brown" 
+	if (Kl == "ALL"){
+		height_U.mx <- matrix (data = c (z_set1.df$Pvalue_U_dev_s, z_set2.df$Pvalue_U_dev_s), nrow = 2, byrow = T)
+		height_Uc.mx <- matrix (data = c (z_set1.df$Coeff_U, z_set2.df$Coeff_U), nrow = 2, byrow = T)
+	} else if (Kl == "YES"){
+		height_U.mx <- matrix (data = c (z_set1.df$Pvalue_U_dev_s), nrow = 1, byrow = T)
+		height_Uc.mx <- matrix (data = c (z_set1.df$Coeff_U), nrow = 1, byrow = T)
+	} else if (Kl == "NO"){
+		height_U.mx <- matrix (data = c (z_set2.df$Pvalue_U_dev_s), nrow = 1, byrow = T)
+		height_Uc.mx <- matrix (data = c (z_set2.df$Coeff_U), nrow = 1, byrow = T)
+	}
+
 	pdf(paste(cnvType,"_NeurofPhen_Significance_U.pdf",sep=""))
-	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,3,0), lwd = 2)
-	height_U.mx <- matrix (data = c (z_set1.df$Pvalue_U_dev_s, z_set2.df$Pvalue_U_dev_s), nrow = 2, byrow = T)
+	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,1,0), lwd = 2)
 	barplot (
 		main = paste(cnvType,": Phenotype: Significance: U",sep=""),
 		height = height_U.mx,
-		names.arg = z_set.labels, ylim = c (min (height_U.mx), max (height_U.mx)), cex.names = labelSize,
+		names.arg = z_set.labels, ylim = c (min (0,height_U.mx), ceiling(max (height_U.mx))), cex.names = labelSize,
 		beside = T, las = 2, col = rep (c ("gray60", "gray90"), times = length (z_set.labels)), 
 		border = as.character (matrix (data = c (z_set1.col, z_set2.col), ncol = length (z_set1.col), byrow = T)),
 		ylab = "-Log (Dev P-value) * sign (Coeff)")
 	dev.off()
 
-	z_set1.col    <- rep ("gray30", length (z_set.gsid))
-	z_set2.col    <- rep ("gray30", length (z_set.gsid))
-	z_set1.col[which (z_set1.df$FDR_BH_U <= 0.1)] <- "brown"
-	z_set2.col[which (z_set2.df$FDR_BH_U <= 0.1)] <- "brown" 
 	pdf(paste(cnvType,"_NeurofPhen_EffectSize_U.pdf",sep=""))
-	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,3,0), lwd = 2)
-	height_Uc.mx <- matrix (data = c (z_set1.df$Coeff_U, z_set2.df$Coeff_U), nrow = 2, byrow = T)
+	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,1,0), lwd = 2)
+	
 	barplot (
 		main = paste(cnvType,": Phenotype: Effect Size: U",sep=""),
 		height = height_Uc.mx,
-		names.arg = z_set.labels, ylim = c (min (height_Uc.mx), max (height_Uc.mx)), cex.names = labelSize,
+		names.arg = z_set.labels, ylim = c (min (0,height_Uc.mx), ceiling(max (height_Uc.mx))), cex.names = labelSize,
 		beside = T, las = 2, col = rep (c ("gray60", "gray90"), times = length (z_set.labels)), 
 		border = as.character (matrix (data = c (z_set1.col, z_set2.col), ncol = length (z_set1.col), byrow = T)),
 		ylab = "Coeff")
@@ -262,12 +326,18 @@ f.makeViz <- function(cnvGSA.in,cnvGSA.out)
 
 	z_col.names <- c ("SZ_g1n", "CT_g1n", "SZ_g2n", "CT_g2n", "SZ_g3n", "CT_g3n")
 	pdf(paste(cnvType,"_NeurofPhen_Support.pdf",sep=""))
-	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,3,0), lwd = 1)
-	height_s.mx <- rbind (t (z_set1.df[, z_col.names]), t (z_set2.df[, z_col.names]))
+	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,1,0), lwd = 1)
+	if (Kl == "ALL"){
+		height_s.mx <- rbind (t (z_set1.df[, z_col.names]), t (z_set2.df[, z_col.names]))
+	} else if (Kl == "YES"){
+		height_s.mx <- t (z_set1.df[, z_col.names])
+	} else if (Kl == "NO"){
+		height_s.mx <- t (z_set2.df[, z_col.names])
+	}
 	barplot (
 		main = paste(cnvType,": Phenotype: Support",sep=""),
 		height = height_s.mx,
-		names.arg = z_set.labels, ylim = c (min (height_s.mx), max (height_s.mx)), cex.names = labelSize, 
+		names.arg = z_set.labels, ylim = c (min (0,height_s.mx), ceiling(max (height_s.mx))), cex.names = labelSize, 
 		beside = T, las = 2, col = rep (c ("salmon", "skyblue"), times = length (z_set.labels)), 
 		border = "gray30",
 		ylab = "SZ and CT subject %")
@@ -275,56 +345,53 @@ f.makeViz <- function(cnvGSA.in,cnvGSA.out)
 
 	z_set.gsid     <- gsList
 	z_set.labels   <- paste (z_set.gsid, gs_len.nv[z_set.gsid], sep = ": ")
-	z_set1.df      <- resObjectKly[match (z_set.gsid, resObjectKly$GsID), ]
-	z_set2.df      <- resObjectKln[match (z_set.gsid, resObjectKln$GsID), ]
-	height_U.mx    <- matrix (data = c (z_set1.df$Pvalue_U_dev_s, z_set2.df$Pvalue_U_dev_s), nrow = 2, byrow = T)
-	height_TL.mx   <- matrix (data = c (z_set1.df$Pvalue_TL_dev_s, z_set2.df$Pvalue_TL_dev_s), nrow = 2, byrow = T)
-	height_CNML.mx <- matrix (data = c (z_set1.df$Pvalue_CNML_dev_s, z_set2.df$Pvalue_CNML_dev_s), nrow = 2, byrow = T)
+
+	if (Kl == "ALL"){
+		height_U.mx    <- matrix (data = c (z_set1.df$Pvalue_U_dev_s, z_set2.df$Pvalue_U_dev_s), nrow = 2, byrow = T)
+		height_TL.mx   <- matrix (data = c (z_set1.df$Pvalue_TL_dev_s, z_set2.df$Pvalue_TL_dev_s), nrow = 2, byrow = T)
+		height_CNML.mx <- matrix (data = c (z_set1.df$Pvalue_CNML_dev_s, z_set2.df$Pvalue_CNML_dev_s), nrow = 2, byrow = T)
+	} else if (Kl == "YES"){
+		height_U.mx    <- matrix (data = c (z_set1.df$Pvalue_U_dev_s), nrow = 1, byrow = T)
+		height_TL.mx   <- matrix (data = c (z_set1.df$Pvalue_TL_dev_s), nrow = 1, byrow = T)
+		height_CNML.mx <- matrix (data = c (z_set1.df$Pvalue_CNML_dev_s), nrow = 1, byrow = T)
+	} else if (Kl == "NO"){
+		height_U.mx    <- matrix (data = c (z_set2.df$Pvalue_U_dev_s), nrow = 1, byrow = T)
+		height_TL.mx   <- matrix (data = c (z_set2.df$Pvalue_TL_dev_s), nrow = 1, byrow = T)
+		height_CNML.mx <- matrix (data = c (z_set2.df$Pvalue_CNML_dev_s), nrow = 1, byrow = T)
+	}
 	min.n          <- min (c (min (height_U.mx), min (height_TL.mx), min (height_CNML.mx)))
 	max.n          <- max (c (max (height_U.mx), max (height_TL.mx), max (height_CNML.mx)))
 
-	z_set1.col    <- rep ("gray30", length (z_set.gsid))
-	z_set2.col    <- rep ("gray30", length (z_set.gsid))
-	z_set1.col[which (z_set1.df$FDR_BH_U <= 0.1)] <- "brown"
-	z_set2.col[which (z_set2.df$FDR_BH_U <= 0.1)] <- "brown" 
 	pdf(paste(cnvType,"_NeurofPhen_Significance_Compare_U.pdf",sep=""))
-	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,3,0), lwd = 2)
+	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,1,0), lwd = 2)
 	barplot (
 		main = paste(cnvType,": Phenotype: Compare Significance: U",sep=""),
 		height = height_U.mx,
-		names.arg = z_set.labels, ylim = c (min.n, max.n), cex.names = labelSize,
+		names.arg = z_set.labels, ylim = c (min(0,min.n), ceiling(max.n)), cex.names = labelSize,
 		beside = T, las = 2, col = rep (c ("gray60", "gray90"), times = length (z_set.labels)), 
-		border = as.character (matrix (data = c (z_set1.col, z_set2.col), ncol = length (z_set1.col), byrow = T)),
+		border = as.character (matrix (data = border_U.vc, ncol = length (nc_U.vc), byrow = T)),
 		ylab = "-Log (Dev P-value) * sign (Coeff)")
 	dev.off()
 
-	z_set1.col    <- rep ("gray30", length (z_set.gsid))
-	z_set2.col    <- rep ("gray30", length (z_set.gsid))
-	z_set1.col[which (z_set1.df$FDR_BH_TL <= 0.1)] <- "brown"
-	z_set2.col[which (z_set2.df$FDR_BH_TL <= 0.1)] <- "brown" 
 	pdf(paste(cnvType,"_NeurofPhen_Significance_Compare_TL.pdf",sep=""))
-	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,3,0), lwd = 2)
+	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,1,0), lwd = 2)
 	barplot (
 		main = paste(cnvType,": Phenotype: Compare Significance: TL",sep=""),
 		height = height_TL.mx,
-		names.arg = z_set.labels, ylim = c (min.n, max.n), cex.names = labelSize,
+		names.arg = z_set.labels, ylim = c (min(0,min.n), ceiling(max.n)), cex.names = labelSize,
 		beside = T, las = 2, col = rep (c ("gray60", "gray90"), times = length (z_set.labels)), 
-		border = as.character (matrix (data = c (z_set1.col, z_set2.col), ncol = length (z_set1.col), byrow = T)),
+		border = as.character (matrix (data = border_TL.vc, ncol = length (nc_TL.vc), byrow = T)),
 		ylab = "-Log (Dev P-value) * sign (Coeff)")
 	dev.off()
 
-	z_set1.col    <- rep ("gray30", length (z_set.gsid))
-	z_set2.col    <- rep ("gray30", length (z_set.gsid))
-	z_set1.col[which (z_set1.df$FDR_BH_CNML <= 0.1)] <- "brown"
-	z_set2.col[which (z_set2.df$FDR_BH_CNML <= 0.1)] <- "brown" 
 	pdf(paste(cnvType,"_NeurofPhen_Significance_Compare_CNML.pdf",sep=""))
-	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,3,0), lwd = 2)
+	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,1,0), lwd = 2)
 	barplot (
 		main = paste(cnvType,": Phenotype: Compare Significance: CNML",sep=""),
 		height = height_CNML.mx,
-		names.arg = z_set.labels, ylim = c (min.n, max.n), cex.names = labelSize,
+		names.arg = z_set.labels, ylim = c (min(0,min.n), ceiling(max.n)), cex.names = labelSize,
 		beside = T, las = 2, col = rep (c ("gray60", "gray90"), times = length (z_set.labels)), 
-		border = as.character (matrix (data = c (z_set1.col, z_set2.col), ncol = length (z_set1.col), byrow = T)),
+		border = as.character (matrix (data = border_CNML.vc, ncol = length (nc_CNML.vc), byrow = T)),
 		ylab = "-Log (Dev P-value) * sign (Coeff)")
 	dev.off()
 }
