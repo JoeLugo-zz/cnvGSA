@@ -1,11 +1,15 @@
 #' Prepare the files for the enrichment maps.
 #'
+#' @param cnvGSA.in A CnvGSAInput S4 object
 #' @param cnvGSA.out A CnvGSAOutput S4 object
 #' @return Returns a list with the data frames of the GMT file and the generic file. 
 
-f.enrFiles <- function(cnvGSA.out)
+f.enrFiles <- function(cnvGSA.in,cnvGSA.out)
 {
-	config.df <- cnvGSA.out@config.df
+	t <- Sys.time()
+	timestamp <- strftime(t,"%Y%m%d%Hh%Mm%S")
+
+	config.df <- cnvGSA.in@config.ls$config.df
 
 	Kl              <- config.df[config.df$param == "Kl","value"]
 	cnvType         <- config.df[config.df$param == "cnvType","value"]
@@ -69,8 +73,8 @@ f.enrFiles <- function(cnvGSA.out)
     }
 
     setwd(outputPathEnr)
-	write.table(enrGeneric,file="enrGeneric.txt",row.names=FALSE,sep="\t",quote=FALSE)
-	f.PackGMT(id2eg.ls = gsGenes.ls, id2des.chv = gs_info.df$GsName, file.name = "enr.gmt")
+	write.table(enrGeneric,file=paste("enrGeneric",timestamp,".txt",sep=""),row.names=FALSE,sep="\t",quote=FALSE)
+	f.PackGMT(id2eg.ls = gsGenes.ls, id2des.chv = gs_info.df$GsName, file.name = paste("enr",timestamp,".gmt"))
 }
 
-# f.enrFiles(cnvGSA.out)
+# f.enrFiles(cnvGSA.in,cnvGSA.out)
