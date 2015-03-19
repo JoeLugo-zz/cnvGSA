@@ -1,14 +1,21 @@
 # 1.0. Libraries
 library (GenomicRanges)
+# library (doParallel)
+# registerDoParallel(cores = 4)
 
-# 2. Read CNV + PhenoCovar and run checks
-f.readData <- function(configFile,cnvGSA.in)
+# 2. Reading the config file
+#' Reading in the config file 
+#'
+#' This function is used to read in all the values from the config file and change them in the S4 objects used throughout the scripts. If you would like to reload the config values, you will want to run this function.
+#'
+#' @param configFile The file name and full path for the config file 
+#' @param cnvGSA.in A CnvGSAInput S4 object.
+#' @return A CnvGSAInput object with the config.ls and params.ls updated
+
+f.readConfig <- function(configFile,cnvGSA.in)
 {
 	if(missing(configFile)){
 		stop("Missing 'configFile' arguement")
-	}
-	if(missing(cnvGSA.in)){
-		stop("Missing 'cnvGSA.in' arguement")
 	}
 
 	config.df <- read.table (configFile, header=T, sep="\t", quote="\"", stringsAsFactors=F)
@@ -25,7 +32,7 @@ f.readData <- function(configFile,cnvGSA.in)
 
 	# PARAMS.LS
 	Kl              <- config.df[config.df$param == "Kl","value"]
-	gsType          <- config.df[config.df$param == "gsType","value"]
+	projectName     <- config.df[config.df$param == "projectName","value"]
 	gsUSet          <- config.df[config.df$param == "gsUSet","value"]
 	cnvType         <- config.df[config.df$param == "cnvType","value"]
 	covariates      <- unlist(strsplit(config.df[config.df$param == "covariates","value"],split = ","))
@@ -41,10 +48,10 @@ f.readData <- function(configFile,cnvGSA.in)
 	fLevels         <- as.numeric(config.df[config.df$param == "fLevels","value"])
 
 	config.ls <- list(cnvFile, phFile, geneIDFile, klGeneFile, klLociFile, gsFile, outputPath, geneListFile, config.df)
-	params.ls <- list(Kl, gsType, gsUSet, cnvType, covariates, klOlp, corrections, geneSep, keySep, geneSetSizeMin, geneSetSizeMax, filtGs, covInterest, thresholdSzCt, fLevels)
+	params.ls <- list(Kl, projectName, gsUSet, cnvType, covariates, klOlp, corrections, geneSep, keySep, geneSetSizeMin, geneSetSizeMax, filtGs, covInterest, thresholdSzCt, fLevels)
 
 	names(config.ls) <- list("cnvFile", "phFile", "geneIDFile", "klGeneFile", "klLociFile", "gsFile", "outputPath", "geneListFile", "config.df")
-	names(params.ls) <- list("Kl", "gsType", "gsUSet", "cnvType", "covariates", "klOlp", "corrections", "geneSep", "keySep", "geneSetSizeMin", "geneSetSizeMax", "filtGs", "covInterest", "thresholdSzCt", "fLevels")
+	names(params.ls) <- list("Kl", "projectName", "gsUSet", "cnvType", "covariates", "klOlp", "corrections", "geneSep", "keySep", "geneSetSizeMin", "geneSetSizeMax", "filtGs", "covInterest", "thresholdSzCt", "fLevels")
 
 	if ("" %in% config.ls || "" %in% params.ls){
 		warning("There are empty values in the config file.")
@@ -53,8 +60,22 @@ f.readData <- function(configFile,cnvGSA.in)
 	cnvGSA.in@config.ls <- config.ls
 	cnvGSA.in@params.ls <- params.ls
 
+	return(cnvGSA.in)
+}
+
+# 3. Read CNV + PhenoCovar and run checks
+f.readData <- function(cnvGSA.in)
+{
+	
+	if(missing(cnvGSA.in)){
+		stop("Missing 'cnvGSA.in' arguement")
+	}
+
 	cat("Reading Data")
 	cat("\n")
+
+	config.ls <- cnvGSA.in@config.ls
+	params.ls <- cnvGSA.in@params.ls
 
 	# setwd (config.ls$cnvPhPath) # "/Users/josephlugo/Documents/R/PGC2_test/newcodeforloci/" "/Users/josephlugo/Documents/R/PGC2_test/CoreData/20150112_DH_AllData/"
 
@@ -171,7 +192,7 @@ f.readData <- function(configFile,cnvGSA.in)
 
 	if(perc_gs < .10){warning("The union of all genes from the gene-sets cover less than 10% of the union of all genes from the CNV's")}
 
-	# 4.1. Compute Overlap
+	# 3.3. Compute Overlap
 	f.getPercOverlap <- function (cnv.start, cnv.end, loc.start, loc.end)
 	{
 	loc.length <- loc.end - loc.start + 1 # why add 1? 1-positional 1-1 leads to length 0 but thats incorrect
@@ -185,7 +206,7 @@ f.readData <- function(configFile,cnvGSA.in)
 	return (olp.prc)
 	}
 
-	# 4.2. Mark known loci 
+	# 3.4. Mark known loci 
 	cnv.gr <- GRanges ( # creates class with single start and end point on the genome
 	seqnames = Rle (paste (cnv.df$CHR, cnv.df$TYPE, sep = params.ls$keySep)), ## match by chromosome and type
 	ranges   = IRanges (start = cnv.df$BP1, end = cnv.df$BP2),
@@ -223,7 +244,7 @@ f.readData <- function(configFile,cnvGSA.in)
 	cnv.df$OlpKL_SID <- 0 # no overlap 
 	cnv.df$OlpKL_SID[which (cnv.df$SID %in% olp50.sid)] <- 1 # some overlap
 
-	# 4.2.1. By gene id 
+	# 3.4.1. By gene id 
 	cnv2.df <- cnv.df
 	cnv2.df$SubjCnvKey <- with (cnv2.df, paste (SID, CnvKey, sep = paste(params.ls$keySep,params.ls$keySep,sep = "")))
 			
@@ -240,13 +261,13 @@ f.readData <- function(configFile,cnvGSA.in)
 	kg.cnvkey <- subset (cnv2gene.df, subset = geneID_type %in% kl_gene.df$geneID_type, select = CnvKey, drop = T)
 	cnv.df$OlpKL_CNV[which (cnv.df$CnvKey %in% kg.cnvkey)] <- 1
 	
-	# 4.2.2. Mark subjects
+	# 3.4.2. Mark subjects
 	klg.sid <- subset (cnv.df, subset = OlpKL_CNV == 1, select = SID, drop = T)
 
 	cnv.df$OlpKL_SID <- 0	
 	cnv.df$OlpKL_SID[which (cnv.df$SID %in% klg.sid)] <- 1
 
-	# 4.3. phenotype table
+	# 3.5. phenotype table
 	ph.df <- merge (ph.df, subset(cnv.df, select = c(SID,OlpKL_SID)),by = "SID")
 
 	if(nlevels(as.factor(ph.df$SEX)) >= 20){
@@ -261,7 +282,7 @@ f.readData <- function(configFile,cnvGSA.in)
 
 	cnv.df$SubjCnvKey <- with (cnv.df, paste (SID, CnvKey, sep = paste(params.ls$keySep, params.ls$keySep, sep = "")))
 
-	# 4.4. main table
+	# 3.6. main table
 	check_type <- params.ls$cnvType
 	type.vc    <- unique(cnv.df$TYPE)
 	if (params.ls$cnvType == "ALL" || params.ls$cnvType == ""){
@@ -327,8 +348,8 @@ f.readData <- function(configFile,cnvGSA.in)
 	}
 
 	cnvData <- list(cnv.df,cnv2gene.df)
-	phData <- list(ph.df,ph_TYPE.df)
-	gsData <- list(gs_info.df,gs_sel_U.df,gs_colnames_TYPE.chv,gs.ls,geneCount.df,geneCount.tab,gs_all.ls)
+	phData  <- list(ph.df,ph_TYPE.df)
+	gsData  <- list(gs_info.df,gs_sel_U.df,gs_colnames_TYPE.chv,gs.ls,geneCount.df,geneCount.tab,gs_all.ls)
 
 	cnvGSA.in@cnvData.ls <- cnvData; names(cnvGSA.in@cnvData.ls) <- list("cnv.df","cnv2gene.df")
 	cnvGSA.in@phData.ls  <- phData; names(cnvGSA.in@phData.ls)   <- list("ph.df","ph_TYPE.df")
@@ -338,7 +359,7 @@ f.readData <- function(configFile,cnvGSA.in)
 	return(cnvGSA.in)
 }
 
-# 3. Format Input Data
+# 4. Format Input Data
 f.formatBuildcovar <- function(cnvGSA.in) # data.ls,
 {	 
 	cat("Formatting Data")
@@ -366,7 +387,7 @@ f.formatBuildcovar <- function(cnvGSA.in) # data.ls,
 
 	cnv.df$CnvCount_TYPE <- with (cnv.df, as.numeric (TYPE %in% c (params.ls$check_type)))
 
-	# 4.5. COVARIATES
+	# 4.1. COVARIATES
 	# aggregate(formula = y[numeric data] ~ x[factors])
 	cnvc_TYPE.df <- aggregate (formula = CnvCount_TYPE ~ SID, data = cnv.df, FUN = sum); ph_TYPE.df <- merge (ph_TYPE.df, cnvc_TYPE.df, all = T, by = "SID")
 	tlen_TYPE.df <- aggregate (formula = CnvLength_TYPE ~ SID, data = cnv.df, FUN = sum); names (tlen_TYPE.df)[2] <- "CnvTotLength_TYPE"; ph_TYPE.df <- merge (ph_TYPE.df, tlen_TYPE.df, all = T, by = "SID") 
@@ -378,7 +399,7 @@ f.formatBuildcovar <- function(cnvGSA.in) # data.ls,
 	return(cnvGSA.in)
 }
 
-# 4. Creating output
+# 5. Creating output
 #' Performing the logistic regression tests on the CNV data
 #'
 #' This test uses 4 different correction models and is based on a case control study. It looks at odds ratios and calculates p-values which the researcher can analyze
@@ -389,6 +410,9 @@ f.formatBuildcovar <- function(cnvGSA.in) # data.ls,
 
 cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 {
+	t <- Sys.time()
+	timestamp <- strftime(t,"%Y%m%d%Hh%Mm%S")
+
 	cat("Running Tests")
 	cat("\n")
 
@@ -438,20 +462,20 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 
 	if (params.ls$Kl == "YES"){
 		ph_TYPE.df <- ph_TYPE.df
-		kl_fn <- paste("GsTest_All",params.ls$gsType,"_",params.ls$cnvType,"_KLy_ScriptP04_v08_41k.txt", sep = "")
+		kl_fn <- paste("GsTest_",params.ls$projectName,"_",params.ls$cnvType,"_KLy_",timestamp,".txt", sep = "")
 		dataNames <- list(paste("covAll_chipAll_",params.ls$cnvType,"_KLy.df",sep=""))
 		cat("Kl - YES")
 		cat("\n")
 		} else if (params.ls$Kl == "NO"){
 		ph_TYPE.df <- subset (ph_TYPE.df, OlpKL_SID == 0)
-		kl_fn <- paste("GsTest_All",params.ls$gsType,"_",params.ls$cnvType,"_KLn_ScriptP04_v08_41k.txt", sep = "")
+		kl_fn <- paste("GsTest_",params.ls$projectName,"_",params.ls$cnvType,"_KLn_",timestamp,".txt", sep = "")
 		dataNames <- list(paste("covAll_chipAll_",params.ls$cnvType,"_KLn.df",sep=""))
 		cat("Kl - NO")
 		cat("\n")
 		} else if (params.ls$Kl == "ALL"){
 		ph_TYPE.df <- ph_TYPE.df
-		kl_fn <- paste("GsTest_All",params.ls$gsType,"_",params.ls$cnvType,"_KLy_ScriptP04_v08_41k.txt", sep = "")
-		kl_fn2 <- paste("GsTest_All",params.ls$gsType,"_",params.ls$cnvType,"_KLn_ScriptP04_v08_41k.txt", sep = "")
+		kl_fn <- paste("GsTest_",params.ls$projectName,"_",params.ls$cnvType,"_KLy_",timestamp,".txt", sep = "")
+		kl_fn2 <- paste("GsTest_",params.ls$projectName,"_",params.ls$cnvType,"_Kln_",timestamp,".txt", sep = "")
 		dataNames <- list(paste("covAll_chipAll_",params.ls$cnvType,"_KLy.df",sep=""),paste("covAll_chipAll_",params.ls$cnvType,"_KLn.df",sep=""))
 		cat("KL - ALL")
 		warning("The function will run twice for results with and without the known loci.")
@@ -460,7 +484,10 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 			stop("Invalid Kl value")
 		}
 
-	# 5.2. Ancillary functions
+	count <- 1
+	totalGs <- length(gs_colnames_TYPE.chv)
+
+	# 5.1. Ancillary functions
 	# looks at the output of the analysis
 	f.getCoeff_sm <- function (glm.sm, var.ch) {
 		     if (var.ch %in% rownames (glm.sm$coefficients)) {return (glm.sm$coefficients[var.ch, "Estimate"])}
@@ -476,8 +503,13 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 		{
 		# CASES
 		data_sz.ix <- which (data.df$Condition == 1) # which rowws meet this requirement 
+		data_sz.df <- subset (data.df, Condition == 1) # cases
+		s_sz.n <- length (data_sz.ix)
 		# CONTROLS
 		data_ct.ix <- which (data.df$Condition == 0)
+		data_ct.df <- subset (data.df, Condition == 0) # controls
+		s_ct.n <- length (data_ct.ix)
+
 		data.df[,covInterest] <- as.factor(data.df[,covInterest])
 		lev.ls <- levels(data.df[,covInterest])
 
@@ -489,8 +521,13 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 			corrections <- c("uni_gc")
 		}
 			
+		cat("Using the following corrections:",params.ls$corrections)
+		cat("\n")
+
 		# t returns the transpose of a matrix
-		res.mx <- t (sapply (gs.colnames , f.testGLM_unit, data.df = data.df, covar.chv = covar.chv, u.gskey = u.gskey, sz.ix = data_sz.ix, ct.ix = data_ct.ix, correct.ls = params.ls$corrections, covInterest = covInterest, thresholdSzCt = thresholdSzCt))
+		res.mx <- t (sapply (gs.colnames , f.testGLM_unit, data.df = data.df, covar.chv = covar.chv, u.gskey = u.gskey, sz.ix = data_sz.ix, ct.ix = data_ct.ix, 
+					 correct.ls = params.ls$corrections, covInterest = covInterest, thresholdSzCt = thresholdSzCt,data_sz.df=data_sz.df,data_ct.df=data_ct.df,s_sz.n=s_sz.n,s_ct.n=s_ct.n))
+		# res.mx <- t(as.data.frame(foreach(i=1:length(gs.colnames)) %dopar% f.testGLM_unit(gs.colnames[i],data.df = data.df, covar.chv = covar.chv, u.gskey = u.gskey, sz.ix = data_sz.ix, ct.ix = data_ct.ix, correct.ls = params.ls$corrections, covInterest = covInterest, thresholdSzCt = thresholdSzCt)))
 		
 		res.df <- as.data.frame (res.mx)
 		res.df$GsKey <- gs.colnames
@@ -509,18 +546,18 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 		return (res.df)
 		}
 
-	# 5.3. LOGISTIC REGRESSION TEST
-	f.testGLM_unit <- function (gs.colname, data.df, covar.chv, u.gskey, sz.ix, ct.ix, correct.ls, covInterest, thresholdSzCt)
+	# 5.2. LOGISTIC REGRESSION TEST
+	f.testGLM_unit <- function (gs.colname, data.df, covar.chv, u.gskey, sz.ix, ct.ix, correct.ls, covInterest, thresholdSzCt,data_sz.df,data_ct.df,s_sz.n,s_ct.n)
 		{
-		cat (gs.colname); cat (":")	
-			
+		
+		cat(match(gs.colname,gs_colnames_TYPE.chv),"out of",totalGs)	
 		output.nv <- numeric ()
 		lev.ls    <- levels(data.df[,covInterest])
 
 		# no correction
 		coeff <- NA; pvalue_glm <- NA; pvalue_dev <- NA; pvalue_dev_s <- NA;
 		if ("no_corr" %in% correct.ls || "ALL" %in% correct.ls || length(correct.ls) == 0){	
-			cat (" no_corr;")
+			# cat (" no_corr;")
 			glm_form.ch  <- paste ("Condition", "~", paste (covar.chv, collapse = " + "), "+", gs.colname, sep = " ")
 			x.glm        <- glm (as.formula (glm_form.ch), data.df, family = binomial (logit))
 			x.glm_sm     <- summary (x.glm)
@@ -534,7 +571,7 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 		# CORRECTION MODEL: universe count		
 		coeff_U <- NA; pvalue_U_glm <- NA; pvalue_U_dev <- NA; pvalue_U_dev_s <- NA;
 		if ("uni_gc" %in% correct.ls || "ALL" %in% correct.ls || length(correct.ls) == 0){
-			cat (" uni_gc;")
+			# cat (" uni_gc;")
 			# formula for the regression model	
 			# response variable ~ predictor variables
 			glm_U_form.ch  <- paste ("Condition", "~", paste (covar.chv, collapse = " + "), "+", u.gskey, "+", gs.colname, sep = " ")
@@ -550,7 +587,7 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 		# CORRECTION MODEL: total length	
 		coeff_TL <- NA; pvalue_TL_glm <- NA; pvalue_TL_dev <- NA; pvalue_TL_dev_s <- NA;		
 		if ("tot_l" %in% correct.ls || "ALL" %in% correct.ls || length(correct.ls) == 0){
-			cat (" tot_l;")	
+			# cat (" tot_l;")	
 			glm_TL_form.ch  <- paste ("Condition", "~", paste (covar.chv, collapse = " + "), "+", paste ("CnvTotLength", "TYPE", sep = "_") , "+", gs.colname, sep = " ")
 			x_TL.glm        <- glm (as.formula (glm_TL_form.ch), data.df, family = binomial (logit))
 			x_TL.glm_sm     <- summary (x_TL.glm)
@@ -564,7 +601,7 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 		# CORRECTION MODEL: mean length	and number
 		coeff_CNML <- NA; pvalue_CNML_glm <- NA; pvalue_CNML_dev <- NA; pvalue_CNML_dev_s <- NA;
 		if ("cnvn_ml" %in% correct.ls || "ALL" %in% correct.ls || length(correct.ls) == 0){
-			cat (" cnvn_ml;")	
+			# cat (" cnvn_ml;")	
 			glm_CNML_form.ch  <- paste ("Condition", "~", paste (covar.chv, collapse = " + "), "+", paste ("CnvCount", "TYPE", sep = "_"), "+", paste ("CnvMeanLength", "TYPE", sep = "_"), "+", gs.colname, sep = " ")
 			x_CNML.glm        <- glm (as.formula (glm_CNML_form.ch), data.df, family = binomial (logit))
 			x_CNML.glm_sm     <- summary (x_CNML.glm)
@@ -574,15 +611,9 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 			pvalue_CNML_dev   <- f.getPval_anova (x_CNML.anova, gs.colname)
 			pvalue_CNML_dev_s <- -log10 (f.getPval_anova (x_CNML.anova, gs.colname)) * sign (f.getCoeff_sm (x_CNML.glm_sm, gs.colname))
 		}
-
-		data_sz.df <- subset (data.df, Condition == 1) # cases
-		data_ct.df <- subset (data.df, Condition == 0) # controls
 				
 		set_gn_sz.nv <- data.df[sz.ix, gs.colname]
 		set_gn_ct.nv <- data.df[ct.ix, gs.colname]
-
-		s_sz.n <- length (set_gn_sz.nv)
-		s_ct.n <- length (set_gn_ct.nv)
 
 		sz.ls <- unlist(lapply(lev.ls,function(x) nrow (subset (data_sz.df, subset = set_gn_sz.nv >= thresholdSzCt & data_sz.df[,covInterest] == x)) / nrow (subset (data_sz.df, subset = data_sz.df[,covInterest] == x)) * 100))
 		ct.ls <- unlist(lapply(lev.ls,function(x) nrow (subset (data_ct.df, subset = set_gn_ct.nv >= thresholdSzCt & data_ct.df[,covInterest] == x)) / nrow (subset (data_ct.df, subset = data_ct.df[,covInterest] == x)) * 100))
@@ -608,10 +639,14 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 
 	{
 	if(params.ls$Kl == "YES" || params.ls$Kl == "ALL"){
+	cat("Running test with known loci.")
+	cat("\n")
 	res.ls$covAll_chipAll_TYPE_KLy.df <- f.testGLM_wrap (gs.colnames=gs_colnames_TYPE.chv, data.df=ph_TYPE.df, covar.chv=params.ls$covariates, u.gskey=setU.gskey, covInterest=params.ls$covInterest, thresholdSzCt=params.ls$thresholdSzCt, fLevels=params.ls$fLevels)
 	gc (); gc (); gc ()}
 	# Looking at all rows where there is no overlap according to the SID
 	if (params.ls$Kl == "NO" || params.ls$Kl == "ALL"){
+	cat("Running test without known loci.")
+	cat("\n")
 	res.ls$covAll_chipAll_TYPE_KLn.df <- f.testGLM_wrap (gs.colnames=gs_colnames_TYPE.chv, data.df=subset (ph_TYPE.df, OlpKL_SID == 0), covar.chv=params.ls$covariates, u.gskey=setU.gskey, covInterest=params.ls$covInterest, thresholdSzCt=params.ls$thresholdSzCt, fLevels = params.ls$fLevels)
 	gc (); gc (); gc ()}
 	}
@@ -650,12 +685,11 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 	cnvGSA.out@res.ls <- res.ls
 	cnvGSA.out@phData.ls <- phData.ls
 	cnvGSA.out@gsData.ls <- cnvGSA.in@gsData.ls
-	cnvGSA.out@config.df <- config.ls$config.df
 
 	return(cnvGSA.out)
 }
 
-# 5. Creating gsTables
+# 6. Creating gsTables
 #' Creating the gene-set tables for each gene-set
 #'
 #' Creates the gene-set tables for each gene-set
@@ -688,21 +722,24 @@ cnvGSAgsTables <- function(cnvGSA.in,cnvGSA.out)
 
 	return(cnvGSA.out)
 }
-# 6. Creating cnvGSA.in S4 object
+
+# 7. Creating cnvGSA.in S4 object
 #' Creating the input S4 object needed to run the script
 #'
 #' @param configFile The file name for the config file including the full path.
+#' @param cnvGSA.in A CnvGSAInput S4 object.
 #' @return A cnvGSAInput S4 object
 
-cnvGSAIn <- function(configFile)
+cnvGSAIn <- function(configFile,cnvGSA.in)
 {
-	cnvGSA.in <- CnvGSAInput()
-	cnvGSA.in <- f.readData(configFile,cnvGSA.in)
+	cnvGSA.in <- f.readConfig(configFile,cnvGSA.in)
+	cnvGSA.in <- f.readData(cnvGSA.in)
 	cnvGSA.in <- f.formatBuildcovar(cnvGSA.in)
 	return(cnvGSA.in)
 }
 
-# cnvGSA.in <- cnvGSAIn(configFile = "/Users/josephlugo/Documents/R/PGC2_test/R_Works/PGC2_config.txt")
+# cnvGSA.in <- CnvGSAInput()
+# cnvGSA.in <- cnvGSAIn(configFile = "/Users/josephlugo/Documents/R/PGC2_test/R_Works/PGC2_config.txt",cnvGSA.in)
 # cnvGSA.out <- CnvGSAOutput()
 # cnvGSA.out <- cnvGSAlogRegTest(cnvGSA.in,cnvGSA.out)
 # save(cnvGSA.out,file=paste("cnvGSAou.RData",sep=""))
