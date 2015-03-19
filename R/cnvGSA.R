@@ -716,7 +716,7 @@ cnvGSAgsTables <- function(cnvGSA.in,cnvGSA.out)
 
 	# Making the gsTables list 
 	gsTable_TYPE.df <- merge (subset(cnv2gene.df,select=-c(geneID)), subset(gs_sel_U.df,select=-c(GsKey)), by.x = "geneID_TYPE", by.y = "gID", all.x = T, all.y = F)
-	gsTables.ls     <- split(gsTable_TYPE.df,gsTable_TYPE.df$GsName)
+	gsTables.ls     <- split(gsTable_TYPE.df,gsTable_TYPE.df$GsID)
 
 	cnvGSA.out@gsTables.ls <- gsTables.ls
 
