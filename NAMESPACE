@@ -9,6 +9,7 @@ exportClasses(
 )
 
 export(
+        f.readConfig,
         cnvGSAlogRegTest,
         cnvGSAgsTables,
         cnvGSAIn,
