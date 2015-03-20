@@ -50,8 +50,8 @@ f.readConfig <- function(configFile,cnvGSA.in)
 	config.ls <- list(cnvFile, phFile, geneIDFile, klGeneFile, klLociFile, gsFile, outputPath, geneListFile, config.df)
 	params.ls <- list(Kl, projectName, gsUSet, cnvType, covariates, klOlp, corrections, geneSep, keySep, geneSetSizeMin, geneSetSizeMax, filtGs, covInterest, thresholdSzCt, fLevels)
 
-	names(config.ls) <- list("cnvFile", "phFile", "geneIDFile", "klGeneFile", "klLociFile", "gsFile", "outputPath", "geneListFile", "config.df")
-	names(params.ls) <- list("Kl", "projectName", "gsUSet", "cnvType", "covariates", "klOlp", "corrections", "geneSep", "keySep", "geneSetSizeMin", "geneSetSizeMax", "filtGs", "covInterest", "thresholdSzCt", "fLevels")
+	names(config.ls) <- list("cnvFile","phFile","geneIDFile","klGeneFile","klLociFile","gsFile","outputPath","geneListFile","config.df")
+	names(params.ls) <- list("Kl","projectName","gsUSet","cnvType","covariates","klOlp","corrections","geneSep","keySep","geneSetSizeMin","geneSetSizeMax","filtGs","covInterest","thresholdSzCt","fLevels")
 
 	if ("" %in% config.ls || "" %in% params.ls){
 		warning("There are empty values in the config file.")
