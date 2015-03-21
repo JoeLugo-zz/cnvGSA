@@ -48,7 +48,7 @@ f.readConfig <- function(configFile,cnvGSA.in)
 	fLevels         <- as.numeric(config.df[config.df$param == "fLevels","value"])
 
 	config.ls <- list(cnvFile, phFile, geneIDFile, klGeneFile, klLociFile, gsFile, outputPath, geneListFile, config.df)
-	params.ls <- list(Kl, projectName, gsUSet, cnvType, covariates, klOlp, corrections, geneSep, keySep, geneSetSizeMin, geneSetSizeMax, filtGs, covInterest, thresholdSzCt, fLevels)
+	params.ls <- list(Kl, projectName, gsUSet, cnvType, covariates, klOlp, corrections, geneSep, keySep, geneSetSizeMin, geneSetSizeMax,filtGs,covInterest, thresholdSzCt, fLevels)
 
 	names(config.ls) <- list("cnvFile","phFile","geneIDFile","klGeneFile","klLociFile","gsFile","outputPath","geneListFile","config.df")
 	names(params.ls) <- list("Kl","projectName","gsUSet","cnvType","covariates","klOlp","corrections","geneSep","keySep","geneSetSizeMin","geneSetSizeMax","filtGs","covInterest","thresholdSzCt","fLevels")
