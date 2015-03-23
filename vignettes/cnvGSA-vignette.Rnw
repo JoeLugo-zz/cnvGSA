@@ -1,3 +1,6 @@
+%\VignetteIndexEntry{cnvGSA - Gene-Set Analysis of Rare Copy Number Variants}
+%\VignetteKeyword{cnvs, copy number variants, gene set enrichment analysis, gene-set enrichment analysis}
+
 \documentclass[12pt]{article}
 
 \usepackage{vmargin}
