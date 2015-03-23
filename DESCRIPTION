@@ -5,7 +5,7 @@ Version: 1.11.1
 Date: 2015-03-02
 Author: Daniele Merico <daniele.merico@gmail.com>, Robert Ziman <rziman@gmail.com>; packaged by Joseph Lugo <joseph.r.lugo@gmail.com>
 Maintainer: Joseph Lugo <joseph.r.lugo@gmail.com>
-Description: This package is intended to facilitate gene-set association with ra
+Description: This package is intended to facilitate gene-set association with rare CNVs in case-control studies.
 License: LGPL
 LazyLoad: yes
 Depends: brglm, GenomicRanges, methods
