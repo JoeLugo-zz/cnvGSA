@@ -4,9 +4,11 @@
 \alias{f.enrFiles}
 \title{Prepare the files for the enrichment maps.}
 \usage{
-f.enrFiles(cnvGSA.out)
+f.enrFiles(cnvGSA.in, cnvGSA.out)
 }
 \arguments{
+\item{cnvGSA.in}{A CnvGSAInput S4 object}
+
 \item{cnvGSA.out}{A CnvGSAOutput S4 object}
 }
 \value{
