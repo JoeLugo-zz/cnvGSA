@@ -90,6 +90,8 @@ f.readData <- function(cnvGSA.in)
 
 	length (unique (cnv.df$SID)) # 34257
 
+	if(params.ls$geneSep == ""){params.ls$geneSep <- ";";cnvGSA.in@params.ls$geneSep <- ";";}
+
 	geneID.ls       <- strsplit (cnv.df$geneID, split = params.ls$geneSep)# list of everything in that geneID
 	geneID_temp.chv <- setdiff (unlist (geneID.ls), NA)# everything that isnt NA in the list only has the ones with numbers
 
@@ -103,6 +105,8 @@ f.readData <- function(cnvGSA.in)
 	# cnv.df           <- cnv.df[which(cnv.df$TYPE %in% c(1,3)),]
 
 	geneID_temp.chv <- setdiff (unlist (strsplit (cnv.df$geneID, split = params.ls$geneSep)), NA)
+
+	if(params.ls$keySep == ""){params.ls$keySep <- "@";cnvGSA.in@params.ls$keySep <- "@";}
 
 	cnv.df$CnvKey <- with (cnv.df, paste (CHR, BP1, BP2, TYPE, sep = params.ls$keySep)) # new col with all of these combined
 	# names (cnv.df)[which (names (cnv.df) == "exon")] <- "E_symbol" # renames exon col to E_symbol
@@ -136,6 +140,9 @@ f.readData <- function(cnvGSA.in)
 	# 3.2. Read GeneSets 
 	# setwd (config.ls$gsPath)
 	load (config.ls$gsFile)
+
+	if (is.na(params.ls$geneSetSizeMin)){params.ls$geneSetSizeMin <- 25;cnvGSA.in@params.ls$geneSetSizeMin <- 25;}
+	if (is.na(params.ls$geneSetSizeMax)){params.ls$geneSetSizeMax <- 1500;cnvGSA.in@params.ls$geneSetSizeMax <- 1500;}
 
 	if ("U" %in% names(gs_all.ls)){
 		gs.ls         <- lapply (gs_all.ls, unique)
@@ -232,6 +239,8 @@ f.readData <- function(cnvGSA.in)
 							start (ranges (loci.gr))[o.df[, "subjectHits"]], end (ranges (loci.gr))[o.df[, "subjectHits"]], 
 							SIMPLIFY = TRUE)
 	
+	if (is.na(params.ls$klOlp)){params.ls$klOlp <- 0.5;cnvGSA.in@params.ls$klOlp <- 0.5;}
+
 	o_olp50.mx <- o.df[olp_prc.nv > params.ls$klOlp, ] # if overlap % > 50 then count as overlap
 
 	olp50.cnvkey   <- mcols (cnv.gr)$cnvkey[o_olp50.mx[, "queryHits"]]
@@ -439,15 +448,13 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 	}
 
 	if (is.na(params.ls$thresholdSzCt)){
-		cat("Using default thresholdSzCt = 1")
-		cat("\n")
 		params.ls$thresholdSzCt <- 1
+		cnvGSA.in@params.ls$thresholdSzCt <- 1
 	}
 
 	if (is.na(params.ls$fLevels)){
-		cat("Using default fLevels = 10")
-		cat("\n")
 		params.ls$fLevels <- 10
+		cnvGSA.in@params.ls$fLevels <- 10
 	}
 
 	setU.gskey <- subset (gs_info.df, GsID == "U", select = GsKey, drop = T)
@@ -472,7 +479,7 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 		dataNames <- list(paste("covAll_chipAll_",params.ls$cnvType,"_KLn.df",sep=""))
 		cat("Kl - NO")
 		cat("\n")
-		} else if (params.ls$Kl == "ALL"){
+		} else if (params.ls$Kl == "ALL" || params.ls$Kl == ""){
 		ph_TYPE.df <- ph_TYPE.df
 		kl_fn <- paste("GsTest_",params.ls$projectName,"_",params.ls$cnvType,"_KLy_",timestamp,".txt", sep = "")
 		kl_fn2 <- paste("GsTest_",params.ls$projectName,"_",params.ls$cnvType,"_Kln_",timestamp,".txt", sep = "")
@@ -638,20 +645,20 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 	res.ls <- list ()
 
 	{
-	if(params.ls$Kl == "YES" || params.ls$Kl == "ALL"){
+	if(params.ls$Kl == "YES" || params.ls$Kl == "ALL" || params.ls$Kl == ""){
 	cat("Running test with known loci.")
 	cat("\n")
 	res.ls$covAll_chipAll_TYPE_KLy.df <- f.testGLM_wrap (gs.colnames=gs_colnames_TYPE.chv, data.df=ph_TYPE.df, covar.chv=params.ls$covariates, u.gskey=setU.gskey, covInterest=params.ls$covInterest, thresholdSzCt=params.ls$thresholdSzCt, fLevels=params.ls$fLevels)
 	gc (); gc (); gc ()}
 	# Looking at all rows where there is no overlap according to the SID
-	if (params.ls$Kl == "NO" || params.ls$Kl == "ALL"){
+	if (params.ls$Kl == "NO" || params.ls$Kl == "ALL" || params.ls$Kl == ""){
 	cat("Running test without known loci.")
 	cat("\n")
 	res.ls$covAll_chipAll_TYPE_KLn.df <- f.testGLM_wrap (gs.colnames=gs_colnames_TYPE.chv, data.df=subset (ph_TYPE.df, OlpKL_SID == 0), covar.chv=params.ls$covariates, u.gskey=setU.gskey, covInterest=params.ls$covInterest, thresholdSzCt=params.ls$thresholdSzCt, fLevels = params.ls$fLevels)
 	gc (); gc (); gc ()}
 	}
 
-	if(params.ls$Kl == "YES" || params.ls$Kl == "ALL"){
+	if(params.ls$Kl == "YES" || params.ls$Kl == "ALL" || params.ls$Kl == ""){
 	res.ls$covAll_chipAll_TYPE_KLy.df$FDR_BH_U    <- p.adjust (res.ls$covAll_chipAll_TYPE_KLy.df$Pvalue_U_dev, method = "BH")
 	res.ls$covAll_chipAll_TYPE_KLy.df$FDR_BH_TL   <- p.adjust (res.ls$covAll_chipAll_TYPE_KLy.df$Pvalue_TL_dev, method = "BH")
 	res.ls$covAll_chipAll_TYPE_KLy.df$FDR_BH_CNML <- p.adjust (res.ls$covAll_chipAll_TYPE_KLy.df$Pvalue_CNML_dev, method = "BH")
@@ -660,7 +667,7 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 	res.ls$covAll_chipAll_TYPE_KLy.df <- subset(res.ls$covAll_chipAll_TYPE_KLy,select=-c(GsKey))
 	}	
 
-	if(params.ls$Kl == "NO" || params.ls$Kl == "ALL"){
+	if(params.ls$Kl == "NO" || params.ls$Kl == "ALL" || params.ls$Kl == ""){
 	res.ls$covAll_chipAll_TYPE_KLn.df$FDR_BH_U    <- p.adjust (res.ls$covAll_chipAll_TYPE_KLn.df$Pvalue_U_dev, method = "BH")
 	res.ls$covAll_chipAll_TYPE_KLn.df$FDR_BH_TL   <- p.adjust (res.ls$covAll_chipAll_TYPE_KLn.df$Pvalue_TL_dev, method = "BH")
 	res.ls$covAll_chipAll_TYPE_KLn.df$FDR_BH_CNML <- p.adjust (res.ls$covAll_chipAll_TYPE_KLn.df$Pvalue_CNML_dev, method = "BH")
@@ -673,11 +680,11 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 
 	setwd (config.ls$outputPath)
 
-	if(params.ls$Kl == "YES" || params.ls$Kl == "ALL"){
+	if(params.ls$Kl == "YES" || params.ls$Kl == "ALL" || params.ls$Kl == ""){
 	resKLy <- get(paste("covAll_chipAll_",params.ls$cnvType,"_KLy.df",sep=""),res.ls)
 	write.table (resKLy, col.names=T, row.names=F, quote=F, sep="\t", file=kl_fn)
 	}
-	if(params.ls$Kl == "NO" || params.ls$Kl == "ALL"){
+	if(params.ls$Kl == "NO" || params.ls$Kl == "ALL" || params.ls$Kl == ""){
 	resKLn <- get(paste("covAll_chipAll_",params.ls$cnvType,"_KLn.df",sep=""),res.ls)
 	write.table (resKLn, col.names=T, row.names=F, quote=F, sep="\t", file=kl_fn2)
 	}
