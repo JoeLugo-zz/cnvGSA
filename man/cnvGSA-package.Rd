@@ -3,7 +3,7 @@
 \alias{cnvGSA}
 \docType{package}
 \title{Gene-set Analysis of (Rare) Copy Number Variants}
-\descriptions{
+\description{
 cnvGSA is an R package meant to facilitate gene-set analysis of (rare) copy number variants (CNVs).
 }
 \details{
