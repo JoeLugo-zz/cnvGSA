@@ -6,12 +6,26 @@
 
 f.enrFiles <- function(cnvGSA.in,cnvGSA.out)
 {
+	config.df <- cnvGSA.in@config.ls$config.df
+
+	Kl <- config.df[config.df$param == "Kl","value"]
+
+	if (Kl == "ALL" || Kl == "")
+	{
+		f.enrProcess(cnvGSA.in,cnvGSA.out,Kl = "YES")
+		f.enrProcess(cnvGSA.in,cnvGSA.out,Kl = "NO")
+	}else {
+		f.enrProcess(cnvGSA.in,cnvGSA.out,Kl)
+	}
+}
+
+f.enrProcess <- function(cnvGSA.in,cnvGSA.out,Kl)
+{
 	t <- Sys.time()
 	timestamp <- strftime(t,"%Y%m%d%Hh%Mm%S")
 
 	config.df <- cnvGSA.in@config.ls$config.df
 
-	Kl              <- config.df[config.df$param == "Kl","value"]
 	cnvType         <- config.df[config.df$param == "cnvType","value"]
 	pVal            <- config.df[config.df$param == "pVal","value"]
 	FDR             <- config.df[config.df$param == "FDR","value"]
@@ -25,6 +39,15 @@ f.enrFiles <- function(cnvGSA.in,cnvGSA.out)
 
 	geneCount.tab <- cnvGSA.out@gsData.ls$geneCount.tab
 	res.ls <- cnvGSA.out@res.ls
+
+	if (pVal == ""){pVal <- "Pvalue_U_dev"}
+	if (FDR == ""){FDR <- "FDR_BH_U"}
+	if (coeff == ""){coeff <- "Coeff_U"}
+	if (keepCoeff == ""){keepCoeff <- "YES"}
+	if (filtGsEnr == ""){filtGsEnr <- "NO"}
+	if (is.na(minCaseCount)){minCaseCount <- 0}
+	if (is.na(minControlCount)){minControlCount <- 0}
+	if (is.na(minRatio)){minRatio <- 0}
 
 	# MAKING GENERIC FILE
 	resKL <- get(paste("covAll_chipAll_",cnvType,"_KLy.df",sep=""),res.ls)
@@ -73,8 +96,10 @@ f.enrFiles <- function(cnvGSA.in,cnvGSA.out)
     }
 
     setwd(outputPathEnr)
-	write.table(enrGeneric,file=paste("enrGeneric",timestamp,".txt",sep=""),row.names=FALSE,sep="\t",quote=FALSE)
-	f.PackGMT(id2eg.ls = gsGenes.ls, id2des.chv = gs_info.df$GsName, file.name = paste("enr",timestamp,".gmt"))
+    cat(paste("Changing directory to ",outputPathEnr,sep=""))
+    cat("\n")
+	write.table(enrGeneric,file=paste("enrGeneric_KL",Kl,"_",timestamp,".txt",sep=""),row.names=FALSE,sep="\t",quote=FALSE)
+	f.PackGMT(id2eg.ls = gsGenes.ls, id2des.chv = gs_info.df$GsName, file.name = paste("enr_KL",Kl,"_",timestamp,".gmt",sep=""))
 }
 
 # f.enrFiles(cnvGSA.in,cnvGSA.out)

@@ -491,8 +491,7 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 			stop("Invalid Kl value")
 		}
 
-	count <- 1
-	totalGs <- length(gs_colnames_TYPE.chv)
+	totalLenGs <- length(gs_colnames_TYPE.chv)
 
 	# 5.1. Ancillary functions
 	# looks at the output of the analysis
@@ -557,7 +556,7 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 	f.testGLM_unit <- function (gs.colname, data.df, covar.chv, u.gskey, sz.ix, ct.ix, correct.ls, covInterest, thresholdSzCt,data_sz.df,data_ct.df,s_sz.n,s_ct.n)
 		{
 		
-		cat(match(gs.colname,gs_colnames_TYPE.chv),"out of",totalGs)	
+		cat(match(gs.colname,gs_colnames_TYPE.chv),"out of",totalLenGs)	
 		output.nv <- numeric ()
 		lev.ls    <- levels(data.df[,covInterest])
 
@@ -680,6 +679,8 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 	names(res.ls) <- dataNames
 
 	setwd (config.ls$outputPath)
+	cat(paste("Changing directory to ",config.ls$outputPath,sep=""))
+	cat("\n")
 
 	if(params.ls$Kl == "YES" || params.ls$Kl == "ALL" || params.ls$Kl == ""){
 	resKLy <- get(paste("covAll_chipAll_",params.ls$cnvType,"_KLy.df",sep=""),res.ls)
@@ -750,5 +751,6 @@ cnvGSAIn <- function(configFile,cnvGSA.in)
 # cnvGSA.in <- cnvGSAIn(configFile = "/Users/josephlugo/Documents/R/PGC2_test/R_Works/PGC2_config.txt",cnvGSA.in)
 # cnvGSA.out <- CnvGSAOutput()
 # cnvGSA.out <- cnvGSAlogRegTest(cnvGSA.in,cnvGSA.out)
-# save(cnvGSA.out,file=paste("cnvGSAou.RData",sep=""))
+# save(cnvGSA.in,file=paste("cnvGSA_input_example.RData",sep=""))
+# save(cnvGSA.out,file=paste("cnvGSA_output_example.RData",sep=""))
 # configPath = "/Users/josephlugo/Documents/R/PGC2_test/R_Works/";configFile = "PGC2_config.txt";
