@@ -54,6 +54,11 @@ f.makeViz <- function(cnvGSA.in,cnvGSA.out)
 	labelSize     <- as.numeric(config.df[config.df$param == "labelSize","value"])
 	gsList        <- config.df[config.df$param == "gsList","value"]
 
+	if (Kl == ""){Kl <- "ALL"}
+	if (is.na(FDRThreshold)){FDRThreshold <- 0.1}
+	if (is.na(plotHeight)){plotHeight <- 13}
+	if (is.na(labelSize)){labelSize <- 0.7}
+
 	if (gsList != ""){
 			gsList <- unlist(strsplit(readLines(gsList),","))
 		}
@@ -66,12 +71,14 @@ f.makeViz <- function(cnvGSA.in,cnvGSA.out)
 	res.ls    <- vizData$res.ls
 
 	if (length(gsList) == 0){
-		stop("No gsList in the gene list.")
+		stop("No gene-sets in gsList.")
 	}
 
 	gs_len.nv <- sapply (gs_all.ls, length)
 
 	setwd (outputPathViz)
+	cat(paste("Changing directory to ",outputPathViz,sep=""))
+	cat("\n")
 
 	# 1.
 	# NEUROFUNCTION + SYNAPTIC
@@ -144,7 +151,7 @@ f.makeViz <- function(cnvGSA.in,cnvGSA.out)
 
 	z_set.gsid   <- gsList
 	z_set.labels <- paste (z_set.gsid, gs_len.nv[z_set.gsid], sep = ": ")
-	z_col.names  <- c ("SZ_g1n", "CT_g1n", "SZ_g2n", "CT_g2n", "SZ_g3n", "CT_g3n")
+	z_col.names  <- c ("CASE_g1n", "CTRL_g1n", "CASE_g2n", "CTRL_g2n", "CASE_g3n", "CTRL_g3n")
 	pdf(paste(cnvType,"_Support_",timestamp,".pdf",sep=""))
 	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,1,0), lwd = 1)
 	if (Kl == "ALL"){
@@ -160,7 +167,7 @@ f.makeViz <- function(cnvGSA.in,cnvGSA.out)
 		names.arg = z_set.labels, ylim = c (min(0,height_s.mx), max(height_s.mx)), cex.names = labelSize, 
 		beside = T, las = 2, col = rep (c ("salmon", "skyblue"), times = length (z_set.labels)), 
 		border = "gray30",
-		ylab = "SZ and CT subject %")
+		ylab = "CASE and CTRL subject %")
 	dev.off()
 
 	z_set.gsid     <- gsList
