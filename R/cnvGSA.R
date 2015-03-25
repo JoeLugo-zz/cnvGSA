@@ -543,11 +543,11 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 								"Coeff_U",    "Pvalue_U_glm",    "Pvalue_U_dev",    "Pvalue_U_dev_s",
 								"Coeff_TL",   "Pvalue_TL_glm",   "Pvalue_TL_dev",   "Pvalue_TL_dev_s",
 								"Coeff_CNML", "Pvalue_CNML_glm", "Pvalue_CNML_dev", "Pvalue_CNML_dev_s",
-								"SZ_g1n", "CT_g1n", "SZ_g2n", "CT_g2n", "SZ_g3n", "CT_g3n", 
-								"SZ_g4n", "CT_g4n", "SZ_g5n", "CT_g5n", 
-								"SZ_gTT", "CT_gTT", 
-								paste (c ("SZ"), lev.ls, sep = "_"),
-								paste (c ("CT"), lev.ls, sep = "_"),
+								"CASE_g1n", "CTRL_g1n", "CASE_g2n", "CTRL_g2n", "CASE_g3n", "CTRL_g3n", 
+								"CASE_g4n", "CTRL_g4n", "CASE_g5n", "CTRL_g5n", 
+								"CASE_gTT", "CTRL_gTT", 
+								paste (c ("CASE"), lev.ls, sep = "_"),
+								paste (c ("CTRL"), lev.ls, sep = "_"),
 								"GsKey")
 
 		return (res.df)
@@ -618,7 +618,8 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 			pvalue_CNML_dev   <- f.getPval_anova (x_CNML.anova, gs.colname)
 			pvalue_CNML_dev_s <- -log10 (f.getPval_anova (x_CNML.anova, gs.colname)) * sign (f.getCoeff_sm (x_CNML.glm_sm, gs.colname))
 		}
-				
+		
+		# sz = case , ct = control
 		set_gn_sz.nv <- data.df[sz.ix, gs.colname]
 		set_gn_ct.nv <- data.df[ct.ix, gs.colname]
 
