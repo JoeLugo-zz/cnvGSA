@@ -54,10 +54,10 @@ f.makeViz <- function(cnvGSA.in,cnvGSA.out)
 	labelSize     <- as.numeric(config.df[config.df$param == "labelSize","value"])
 	gsList        <- config.df[config.df$param == "gsList","value"]
 
-	if (Kl == ""){Kl <- "ALL"}
-	if (is.na(FDRThreshold)){FDRThreshold <- 0.1}
-	if (is.na(plotHeight)){plotHeight <- 13}
-	if (is.na(labelSize)){labelSize <- 0.7}
+	if (Kl == "")            {Kl <- "ALL"}
+	if (is.na(FDRThreshold)) {FDRThreshold <- 0.1}
+	if (is.na(plotHeight))   {plotHeight <- 13}
+	if (is.na(labelSize))    {labelSize <- 0.7}
 
 	if (gsList != ""){
 			gsList <- unlist(strsplit(readLines(gsList),","))

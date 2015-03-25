@@ -14,7 +14,7 @@ f.enrFiles <- function(cnvGSA.in,cnvGSA.out)
 	{
 		f.enrProcess(cnvGSA.in,cnvGSA.out,Kl = "YES")
 		f.enrProcess(cnvGSA.in,cnvGSA.out,Kl = "NO")
-	}else {
+	} else {
 		f.enrProcess(cnvGSA.in,cnvGSA.out,Kl)
 	}
 }
@@ -38,16 +38,16 @@ f.enrProcess <- function(cnvGSA.in,cnvGSA.out,Kl)
 	minRatio        <- as.numeric(config.df[config.df$param == "minRatio","value"])
 
 	geneCount.tab <- cnvGSA.out@gsData.ls$geneCount.tab
-	res.ls <- cnvGSA.out@res.ls
+	res.ls        <- cnvGSA.out@res.ls
 
-	if (pVal == ""){pVal <- "Pvalue_U_dev"}
-	if (FDR == ""){FDR <- "FDR_BH_U"}
-	if (coeff == ""){coeff <- "Coeff_U"}
-	if (keepCoeff == ""){keepCoeff <- "YES"}
-	if (filtGsEnr == ""){filtGsEnr <- "NO"}
-	if (is.na(minCaseCount)){minCaseCount <- 0}
-	if (is.na(minControlCount)){minControlCount <- 0}
-	if (is.na(minRatio)){minRatio <- 0}
+	if (pVal == "")             {pVal <- "Pvalue_U_dev"}
+	if (FDR == "")              {FDR <- "FDR_BH_U"}
+	if (coeff == "")            {coeff <- "Coeff_U"}
+	if (keepCoeff == "")        {keepCoeff <- "YES"}
+	if (filtGsEnr == "")        {filtGsEnr <- "NO"}
+	if (is.na(minCaseCount))    {minCaseCount <- 0}
+	if (is.na(minControlCount)) {minControlCount <- 0}
+	if (is.na(minRatio))        {minRatio <- 0}
 
 	# MAKING GENERIC FILE
 	resKL <- get(paste("covAll_chipAll_",cnvType,"_KLy.df",sep=""),res.ls)
