@@ -256,6 +256,7 @@ f.readData <- function(cnvGSA.in)
 	# 3.4.1. By gene id 
 	cnv2.df <- cnv.df
 	cnv2.df$SubjCnvKey <- with (cnv2.df, paste (SID, CnvKey, sep = paste(params.ls$keySep,params.ls$keySep,sep = "")))
+	cnv2.df <- cnv2.df[! duplicated (cnv2.df$SubjCnvKey), ]
 			
 	cnv2gene.ls <- strsplit (cnv2.df$geneID, params.ls$geneSep)
 	names (cnv2gene.ls) <- cnv2.df$SubjCnvKey
@@ -298,6 +299,7 @@ f.readData <- function(cnvGSA.in)
 		check_type <- type.vc
 	}
 
+	cnv.df <- cnv.df[! duplicated (cnv.df$SubjCnvKey), ]
 	cnv2gene.ls <- strsplit (cnv.df$geneID, split = params.ls$geneSep)
 	names (cnv2gene.ls) <- cnv.df$SubjCnvKey
 	cnv2gene.df <- stack (cnv2gene.ls); names (cnv2gene.df) <- c ("geneID", "SubjCnvKey") # sets colnames
@@ -305,7 +307,7 @@ f.readData <- function(cnvGSA.in)
 	if (params.ls$cnvType != "ALL"){
 		cnv2gene.df <- merge (cnv2gene.df, cnv.df[, cnv2gene.nm], by = "SubjCnvKey", all = T)
 	} else {
-		cnv2gene.df <- merge (cnv2gene.df, cnv.df[, unlist(params.ls$covariates, c ("CHR","BP1","BP2","SubjCnvKey", "SID", "TYPE"))], by = "SubjCnvKey", all = T)
+		cnv2gene.df <- merge (cnv2gene.df, cnv.df[, unlist(c(params.ls$covariates, c ("CHR","BP1","BP2","SubjCnvKey", "SID", "TYPE")))], by = "SubjCnvKey", all = T)
 	}
 
 	cnv2gene.df$geneID_TYPE  <- cnv2gene.df$geneID
