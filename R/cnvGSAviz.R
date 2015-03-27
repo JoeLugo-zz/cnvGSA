@@ -6,9 +6,6 @@
 #' @param cnvGSA.out A CnvGSAOutput S4 object
 #' @return Creates the plots to better understand the output
 
-# setwd ("/Users/josephlugo/Documents/R/PGC2_test/Results/ScriptP02_MakeLogregTable_v06_20141208h18m25_41k_size_kloci_gwas")
-# load  ("wsRes_ScriptP02_MakeLogregTable_v06_20141208h18m25_41k_size_kloci_gwas.RData")
-
 # * strange behavior of ARC / NMDAR: including known loci, ARC significant for losses and NMDAR for gains, when removing known loci, both significant for losses (but ARC more) -- need to investigate at gene level
 # * synaptic sets: GO synaptic components, GO neuron projection components / morphogsListis and Darnell FMR1 target (from mouse) rank on top for losses, with as well as without known loci
 # * synaptic pathway panel: glutamatargic first and significant, with and without known loci; dopaminergic borderline significant only when including known loci
@@ -25,11 +22,7 @@
 # frame-B-a: 45%: compare significance for different correction methods
 # frame-C-l: 60%: U correction (rescaled), coefficient
 # frame-C-r: 90%: support
-# configPath = "/Users/josephlugo/Documents/R/PGC2_test/R_Works/";configFile = "vizConfig.txt";
 
-# vizData <- f.vizPreProcess(cnvGSA.in,cnvGSA.out)
-# setwd("/Users/josephlugo/Documents/R/PGC2_test/Restructure_Results/8.5/Viz/")
-# load("vizInput2015031014h01m25.RData")
 # f.makeViz(cnvGSA.in,cnvGSA.out)
 
 f.makeViz <- function(cnvGSA.in,cnvGSA.out)
