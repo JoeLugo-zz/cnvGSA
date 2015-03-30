@@ -1,7 +1,7 @@
 # 1.0. Libraries
 library (GenomicRanges)
-# library (doParallel)
-# registerDoParallel(cores = 4)
+library (doParallel)
+library(foreach)
 
 # 2. Reading the config file
 #' Reading in the config file 
@@ -46,15 +46,16 @@ f.readConfig <- function(configFile,cnvGSA.in)
 	covInterest     <- config.df[config.df$param == "covInterest","value"] 	
 	thresholdSzCt   <- as.numeric(config.df[config.df$param == "thresholdSzCt","value"])
 	fLevels         <- as.numeric(config.df[config.df$param == "fLevels","value"])
+	cores           <- as.numeric(config.df[config.df$param == "cores","value"])
 
 	config.ls <- list(cnvFile, phFile, geneIDFile, klGeneFile, klLociFile, gsFile, outputPath, geneListFile, config.df)
-	params.ls <- list(Kl, projectName, gsUSet, cnvType, covariates, klOlp, corrections, geneSep, keySep, geneSetSizeMin, geneSetSizeMax,filtGs,covInterest, thresholdSzCt, fLevels)
+	params.ls <- list(Kl, projectName, gsUSet, cnvType, covariates, klOlp, corrections, geneSep, keySep, geneSetSizeMin, geneSetSizeMax,filtGs,covInterest, thresholdSzCt, fLevels,cores)
 
 	names(config.ls) <- list("cnvFile","phFile","geneIDFile","klGeneFile","klLociFile","gsFile","outputPath","geneListFile","config.df")
-	names(params.ls) <- list("Kl","projectName","gsUSet","cnvType","covariates","klOlp","corrections","geneSep","keySep","geneSetSizeMin","geneSetSizeMax","filtGs","covInterest","thresholdSzCt","fLevels")
+	names(params.ls) <- list("Kl","projectName","gsUSet","cnvType","covariates","klOlp","corrections","geneSep","keySep","geneSetSizeMin","geneSetSizeMax","filtGs","covInterest","thresholdSzCt","fLevels","cores")
 
 	if ("" %in% config.ls || "" %in% params.ls){
-		warning("There are empty values in the config file.")
+		warning("There are empty values in the config file")
 	}
 
 	cnvGSA.in@config.ls <- config.ls
@@ -355,7 +356,7 @@ f.readData <- function(cnvGSA.in)
 	ph_TYPE.df <- merge (ph.df, sid2gs_TYPE_tab.df, all = T, by = "SID")
 
 	if(length(ph_TYPE.df$SID) != length(unique(ph_TYPE.df$SID))){
-		warning("There are duplicated SID's in the ph_TYPE.df. May want to check this.")
+		warning("There are duplicated SID's in the ph_TYPE.df. May want to check this")
 	}
 
 	cnvData <- list(cnv.df,cnv2gene.df)
@@ -487,7 +488,7 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 		kl_fn2 <- paste("GsTest_",params.ls$projectName,"_",params.ls$cnvType,"_Kln_",timestamp,".txt", sep = "")
 		dataNames <- list(paste("covAll_chipAll_",params.ls$cnvType,"_KLy.df",sep=""),paste("covAll_chipAll_",params.ls$cnvType,"_KLn.df",sep=""))
 		cat("KL - ALL")
-		warning("The function will run twice for results with and without the known loci.")
+		warning("The function will run twice for results with and without the known loci")
 		cat("\n")
 		}else {
 			stop("Invalid Kl value")
@@ -507,7 +508,7 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 			if (var.ch %in% rownames (glm.anova["Pr(>Chi)"])) {return (glm.anova["Pr(>Chi)"][var.ch, "Pr(>Chi)"])}
 			else {return (NA)} }
 
-	f.testGLM_wrap <- function (gs.colnames, data.df, covar.chv, u.gskey, covInterest, thresholdSzCt, fLevels)
+	f.testGLM_wrap <- function (gs.colnames, data.df, covar.chv, u.gskey, covInterest, thresholdSzCt, fLevels, cores)
 		{
 		# CASES
 		data_sz.ix <- which (data.df$Condition == 1) # which rowws meet this requirement 
@@ -532,13 +533,22 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 		cat("Using the following corrections:",params.ls$corrections)
 		cat("\n")
 
+		if(is.na(cores)){
+			cores <- detectCores()
+		}
+		registerDoParallel(cores = cores)
+		cat(paste("Using ",cores," cores for parallelization",sep=""))
+		cat("\n")
+
 		# t returns the transpose of a matrix
-		res.mx <- t (sapply (gs.colnames , f.testGLM_unit, data.df = data.df, covar.chv = covar.chv, u.gskey = u.gskey, sz.ix = data_sz.ix, ct.ix = data_ct.ix, 
-					 correct.ls = params.ls$corrections, covInterest = covInterest, thresholdSzCt = thresholdSzCt,data_sz.df=data_sz.df,data_ct.df=data_ct.df,s_sz.n=s_sz.n,s_ct.n=s_ct.n))
-		# res.mx <- t(as.data.frame(foreach(i=1:length(gs.colnames)) %dopar% f.testGLM_unit(gs.colnames[i],data.df = data.df, covar.chv = covar.chv, u.gskey = u.gskey, sz.ix = data_sz.ix, ct.ix = data_ct.ix, correct.ls = params.ls$corrections, covInterest = covInterest, thresholdSzCt = thresholdSzCt)))
+		# res.mx <- t (sapply (gs.colnames , f.testGLM_unit, data.df = data.df, covar.chv = covar.chv, u.gskey = u.gskey, sz.ix = data_sz.ix, ct.ix = data_ct.ix, 
+					 # correct.ls = params.ls$corrections, covInterest = covInterest, thresholdSzCt = thresholdSzCt,data_sz.df=data_sz.df,data_ct.df=data_ct.df,s_sz.n=s_sz.n,s_ct.n=s_ct.n))
+		res.mx <- t (as.data.frame(foreach(i=1:length(gs.colnames)) %dopar% f.testGLM_unit(gs.colnames[i],data.df = data.df, covar.chv = covar.chv, u.gskey = u.gskey, sz.ix = data_sz.ix, ct.ix = data_ct.ix, 
+					 correct.ls = params.ls$corrections, covInterest = covInterest, thresholdSzCt = thresholdSzCt,data_sz.df=data_sz.df,data_ct.df=data_ct.df,s_sz.n=s_sz.n,s_ct.n=s_ct.n)))
 		
 		res.df <- as.data.frame (res.mx)
 		res.df$GsKey <- gs.colnames
+		row.names(res.df) <- NULL
 
 		colnames (res.df) <- c ("Coeff",      "Pvalue_glm",      "Pvalue_dev",      "Pvalue_dev_s",
 								"Coeff_U",    "Pvalue_U_glm",    "Pvalue_U_dev",    "Pvalue_U_dev_s",
@@ -648,15 +658,15 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 
 	{
 	if(params.ls$Kl == "YES" || params.ls$Kl == "ALL" || params.ls$Kl == ""){
-	cat("Running test with known loci.")
+	cat("Running test with known loci")
 	cat("\n")
-	res.ls$covAll_chipAll_TYPE_KLy.df <- f.testGLM_wrap (gs.colnames=gs_colnames_TYPE.chv, data.df=ph_TYPE.df, covar.chv=params.ls$covariates, u.gskey=setU.gskey, covInterest=params.ls$covInterest, thresholdSzCt=params.ls$thresholdSzCt, fLevels=params.ls$fLevels)
+	res.ls$covAll_chipAll_TYPE_KLy.df <- f.testGLM_wrap (gs.colnames=gs_colnames_TYPE.chv, data.df=ph_TYPE.df, covar.chv=params.ls$covariates, u.gskey=setU.gskey, covInterest=params.ls$covInterest, thresholdSzCt=params.ls$thresholdSzCt, fLevels=params.ls$fLevels, cores=params.ls$cores)
 	gc (); gc (); gc ()}
 	# Looking at all rows where there is no overlap according to the SID
 	if (params.ls$Kl == "NO" || params.ls$Kl == "ALL" || params.ls$Kl == ""){
-	cat("Running test without known loci.")
+	cat("Running test without known loci")
 	cat("\n")
-	res.ls$covAll_chipAll_TYPE_KLn.df <- f.testGLM_wrap (gs.colnames=gs_colnames_TYPE.chv, data.df=subset (ph_TYPE.df, OlpKL_SID == 0), covar.chv=params.ls$covariates, u.gskey=setU.gskey, covInterest=params.ls$covInterest, thresholdSzCt=params.ls$thresholdSzCt, fLevels = params.ls$fLevels)
+	res.ls$covAll_chipAll_TYPE_KLn.df <- f.testGLM_wrap (gs.colnames=gs_colnames_TYPE.chv, data.df=subset (ph_TYPE.df, OlpKL_SID == 0), covar.chv=params.ls$covariates, u.gskey=setU.gskey, covInterest=params.ls$covInterest, thresholdSzCt=params.ls$thresholdSzCt, fLevels = params.ls$fLevels, cores=params.ls$cores)
 	gc (); gc (); gc ()}
 	}
 
