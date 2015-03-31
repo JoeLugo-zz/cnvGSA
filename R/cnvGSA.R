@@ -1,7 +1,7 @@
 # 1.0. Libraries
 library (GenomicRanges)
 library (doParallel)
-library(foreach)
+library (foreach)
 
 # 2. Reading the config file
 #' Reading in the config file 
@@ -487,8 +487,8 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 		kl_fn <- paste("GsTest_",params.ls$projectName,"_",params.ls$cnvType,"_KLy_",timestamp,".txt", sep = "")
 		kl_fn2 <- paste("GsTest_",params.ls$projectName,"_",params.ls$cnvType,"_Kln_",timestamp,".txt", sep = "")
 		dataNames <- list(paste("covAll_chipAll_",params.ls$cnvType,"_KLy.df",sep=""),paste("covAll_chipAll_",params.ls$cnvType,"_KLn.df",sep=""))
-		cat("KL - ALL")
-		warning("The function will run twice for results with and without the known loci")
+		cat("KL - ALL : ")
+		cat("The function will run twice for results with AND without the known loci")
 		cat("\n")
 		}else {
 			stop("Invalid Kl value")
@@ -537,7 +537,7 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 			cores <- detectCores()
 		}
 		registerDoParallel(cores = cores)
-		cat(paste("Using ",cores," cores for parallelization",sep=""))
+		cat(paste("Using ",cores," cores for parallelization of tests",sep=""))
 		cat("\n")
 
 		# t returns the transpose of a matrix
