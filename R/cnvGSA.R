@@ -99,7 +99,7 @@ f.readData <- function(cnvGSA.in)
 	geneID.ls       <- lapply (geneID.ls, setdiff, "n/a")
 	geneID_temp.chv <- setdiff (unlist (geneID.ls), c ("n/a", NA)) # everything that doesnt have "n/a" or NA
 
-	cnv.df$geneID_DH <- cnv.df$geneID
+	# cnv.df$geneID_DH <- cnv.df$geneID
 	cnv.df$geneID    <- sapply (geneID.ls, paste, collapse = params.ls$geneSep) ## >> produces "NA" as missing value, rather than NA
 	cnv.df$geneID[which (cnv.df$geneID == "NA")] <- NA # makes all "NA" NA
 	cnv.df$geneID[which (cnv.df$geneID == ""  )] <- NA # makes all "" NA
@@ -119,6 +119,9 @@ f.readData <- function(cnvGSA.in)
 		ph.df     <- subset (ph.df , select = - c (IID, FID, AFF))
 	}
 
+	# many duplicates once you get rid of these columns
+	ph.df <- ph.df[! duplicated (ph.df), ]
+
 	phNames.vc <- c("SID","Condition",params.ls$covariates)
 	cnvNames.vc <- colnames(cnv.df)
 
@@ -126,7 +129,7 @@ f.readData <- function(cnvGSA.in)
 	# only want the SIDS that are in the CNV table so we can properly analyze it
 	if (length(ph.df[,which(colnames(ph.df) %in% phNames.vc & !(colnames(ph.df) %in% cnvNames.vc))]) != 0){
 		cnv.df <- merge (
-						subset (cnv.df, select = - c (geneID_DH)), 
+						cnv.df,
 						ph.df[,which(colnames(ph.df) %in% phNames.vc & !(colnames(ph.df) %in% colnames(subset(cnv.df, select = - c (SID)))))],
 						by = "SID", all = F) # combines them using the SID 
 	}
@@ -288,7 +291,6 @@ f.readData <- function(cnvGSA.in)
 		warning("There are more than 20 levels in the CNV_platform factor")
 	}
 
-	# many duplicates once you get rid of these columns
 	ph.df <- ph.df[! duplicated (ph.df), ]
 
 	cnv.df$SubjCnvKey <- with (cnv.df, paste (SID, CnvKey, sep = paste(params.ls$keySep, params.ls$keySep, sep = "")))
@@ -304,12 +306,7 @@ f.readData <- function(cnvGSA.in)
 	cnv2gene.ls <- strsplit (cnv.df$geneID, split = params.ls$geneSep)
 	names (cnv2gene.ls) <- cnv.df$SubjCnvKey
 	cnv2gene.df <- stack (cnv2gene.ls); names (cnv2gene.df) <- c ("geneID", "SubjCnvKey") # sets colnames
-	cnv2gene.nm <- unlist(c(params.ls$covariates, c("CHR","BP1","BP2","SubjCnvKey", "SID", "TYPE")))
-	if (params.ls$cnvType != "ALL"){
-		cnv2gene.df <- merge (cnv2gene.df, cnv.df[, cnv2gene.nm], by = "SubjCnvKey", all = T)
-	} else {
-		cnv2gene.df <- merge (cnv2gene.df, cnv.df[, unlist(c(params.ls$covariates, c ("CHR","BP1","BP2","SubjCnvKey", "SID", "TYPE")))], by = "SubjCnvKey", all = T)
-	}
+	cnv2gene.df <- merge (cnv2gene.df, cnv.df[, unlist(c(params.ls$covariates, c ("CHR","BP1","BP2","SubjCnvKey", "SID", "TYPE")))], by = "SubjCnvKey", all = T)
 
 	cnv2gene.df$geneID_TYPE  <- cnv2gene.df$geneID
 	if (params.ls$cnvType != "ALL"){
@@ -352,7 +349,26 @@ f.readData <- function(cnvGSA.in)
 	sid2gs_TYPE_tab.df <- as.data.frame (as.matrix (sid2gs_TYPE.tab[1: nrow (sid2gs_TYPE.tab), 1: ncol (sid2gs_TYPE.tab)]))
 	sid2gs_TYPE_tab.df$SID <- rownames (sid2gs_TYPE.tab); gc (); gc ()
 
-	# making a new data frame merging main data frame with the losses
+	cat("Building Covariates")
+	cat("\n")
+
+	cnv.df$CnvLength_ALL <- with (cnv.df, BP2 - BP1 + 1)
+	cnv.df$CnvLength_TYPE <- with (cnv.df, BP2 - BP1 + 1)
+	# all cnvlength with type 1 specifies only looking for certain type not multiplying the numbers 
+	# only need to run this if they want the cnv type gain or loss returns 1 or 0 if true or false
+	if (params.ls$cnvType != "ALL"){
+		cnv.df$CnvLength_TYPE <- with (cnv.df, CnvLength_ALL * as.numeric (TYPE == check_type))
+	}
+	# all cnvlength with type 3
+
+	cnv.df$CnvCount_TYPE <- with (cnv.df, as.numeric (TYPE %in% c (check_type)))
+
+	# 4.1. COVARIATES
+	# aggregate(formula = y[numeric data] ~ x[factors])
+	cnvc_TYPE.df <- aggregate (formula = CnvCount_TYPE ~ SID, data = cnv.df, FUN = sum); ph.df <- merge (ph.df, cnvc_TYPE.df, all = T, by = "SID")
+	tlen_TYPE.df <- aggregate (formula = CnvLength_TYPE ~ SID, data = cnv.df, FUN = sum); names (tlen_TYPE.df)[2] <- "CnvTotLength_TYPE"; ph.df <- merge (ph.df, tlen_TYPE.df, all = T, by = "SID") 
+	mlen_TYPE.df <- aggregate (formula = CnvLength_TYPE ~ SID, data = cnv.df, FUN = mean); names (mlen_TYPE.df)[2] <- "CnvMeanLength_TYPE"; ph.df <- merge (ph.df, mlen_TYPE.df, all = T, by = "SID") 
+
 	ph_TYPE.df <- merge (ph.df, sid2gs_TYPE_tab.df, all = T, by = "SID")
 
 	if(length(ph_TYPE.df$SID) != length(unique(ph_TYPE.df$SID))){
@@ -367,46 +383,6 @@ f.readData <- function(cnvGSA.in)
 	cnvGSA.in@phData.ls  <- phData; names(cnvGSA.in@phData.ls)   <- list("ph.df","ph_TYPE.df")
 	cnvGSA.in@gsData.ls  <- gsData; names(cnvGSA.in@gsData.ls)   <- list("gs_info.df","gs_sel_U.df","gs_colnames_TYPE.chv","gs.ls","geneCount.df","geneCount.tab","gs_all.ls")
 	cnvGSA.in@params.ls$check_type <- check_type
-
-	return(cnvGSA.in)
-}
-
-# 4. Format Input Data
-f.formatBuildcovar <- function(cnvGSA.in) # data.ls,
-{	 
-	cat("Formatting Data")
-	cat("\n")
-
-	if ( missing(cnvGSA.in)) {
-		stop("Missing 'cnvGSA.in' arguement")
-	}
-
-	cnv.df <- cnvGSA.in@cnvData.ls$cnv.df # as.data.frame(data.ls[1])
-	ph_TYPE.df <- cnvGSA.in@phData.ls$ph_TYPE.df # as.data.frame(data.ls[2])
-	params.ls <- cnvGSA.in@params.ls
-
-	cat("Building Covariates")
-	cat("\n")
-
-	cnv.df$CnvLength_ALL <- with (cnv.df, BP2 - BP1 + 1)
-	cnv.df$CnvLength_TYPE <- with (cnv.df, BP2 - BP1 + 1)
-	# all cnvlength with type 1 specifies only looking for certain type not multiplying the numbers 
-	# only need to run this if they want the cnv type gain or loss returns 1 or 0 if true or false
-	if (params.ls$cnvType != "ALL"){
-		cnv.df$CnvLength_TYPE <- with (cnv.df, CnvLength_ALL * as.numeric (TYPE == params.ls$check_type))
-	}
-	# all cnvlength with type 3
-
-	cnv.df$CnvCount_TYPE <- with (cnv.df, as.numeric (TYPE %in% c (params.ls$check_type)))
-
-	# 4.1. COVARIATES
-	# aggregate(formula = y[numeric data] ~ x[factors])
-	cnvc_TYPE.df <- aggregate (formula = CnvCount_TYPE ~ SID, data = cnv.df, FUN = sum); ph_TYPE.df <- merge (ph_TYPE.df, cnvc_TYPE.df, all = T, by = "SID")
-	tlen_TYPE.df <- aggregate (formula = CnvLength_TYPE ~ SID, data = cnv.df, FUN = sum); names (tlen_TYPE.df)[2] <- "CnvTotLength_TYPE"; ph_TYPE.df <- merge (ph_TYPE.df, tlen_TYPE.df, all = T, by = "SID") 
-	mlen_TYPE.df <- aggregate (formula = CnvLength_TYPE ~ SID, data = cnv.df, FUN = mean); names (mlen_TYPE.df)[2] <- "CnvMeanLength_TYPE"; ph_TYPE.df <- merge (ph_TYPE.df, mlen_TYPE.df, all = T, by = "SID") 
-
-	cnvGSA.in@cnvData.ls$cnv.df <- cnv.df
-	cnvGSA.in@phData.ls$ph_TYPE.df <- ph_TYPE.df
 
 	return(cnvGSA.in)
 }
@@ -521,6 +497,8 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 
 		data.df[,covInterest] <- as.factor(data.df[,covInterest])
 		lev.ls <- levels(data.df[,covInterest])
+		cat("Including",covInterest,"in test")
+		cat("\n")
 
 		if (length(lev.ls) > fLevels){
 			stop(paste("Number of fLevels in",covInterest,"exceeds",fLevels,sep=" "))
@@ -670,22 +648,36 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 	gc (); gc (); gc ()}
 	}
 
+	ph_TYPE.df[,params.ls$covInterest] <- as.factor(ph_TYPE.df[,params.ls$covInterest])
+	lev.ls <- levels(ph_TYPE.df[,params.ls$covInterest])
+	colOrder <- c ( "GsID", "GsName", "GsSize", "Coeff", "Pvalue_glm", "Pvalue_dev", "Pvalue_dev_s",
+					"Coeff_U", "Pvalue_U_glm", "Pvalue_U_dev", "Pvalue_U_dev_s", "FDR_BH_U",
+					"Coeff_TL", "Pvalue_TL_glm", "Pvalue_TL_dev", "Pvalue_TL_dev_s", "FDR_BH_TL",
+					"Coeff_CNML", "Pvalue_CNML_glm", "Pvalue_CNML_dev", "Pvalue_CNML_dev_s", "FDR_BH_CNML",
+					"CASE_g1n", "CTRL_g1n", "CASE_g2n", "CTRL_g2n", "CASE_g3n", "CTRL_g3n", 
+					"CASE_g4n", "CTRL_g4n", "CASE_g5n", "CTRL_g5n", 
+					"CASE_gTT", "CTRL_gTT", 
+					paste (c ("CASE"), lev.ls, sep = "_"),
+					paste (c ("CTRL"), lev.ls, sep = "_"))
+
 	if(params.ls$Kl == "YES" || params.ls$Kl == "ALL" || params.ls$Kl == ""){
 	res.ls$covAll_chipAll_TYPE_KLy.df$FDR_BH_U    <- p.adjust (res.ls$covAll_chipAll_TYPE_KLy.df$Pvalue_U_dev, method = "BH")
 	res.ls$covAll_chipAll_TYPE_KLy.df$FDR_BH_TL   <- p.adjust (res.ls$covAll_chipAll_TYPE_KLy.df$Pvalue_TL_dev, method = "BH")
 	res.ls$covAll_chipAll_TYPE_KLy.df$FDR_BH_CNML <- p.adjust (res.ls$covAll_chipAll_TYPE_KLy.df$Pvalue_CNML_dev, method = "BH")
-	res.ls$covAll_chipAll_TYPE_KLy.df <- merge (res.ls$covAll_chipAll_TYPE_KLy.df, gs_info.df, all.x = T, all.y = F, by = "GsKey")
+	res.ls$covAll_chipAll_TYPE_KLy.df <- merge (gs_info.df, res.ls$covAll_chipAll_TYPE_KLy.df, all.x = F, all.y = T, by = "GsKey")
 	res.ls$covAll_chipAll_TYPE_KLy.df <- res.ls$covAll_chipAll_TYPE_KLy.df[order (res.ls$covAll_chipAll_TYPE_KLy.df$Pvalue_U_dev_s, decreasing = T), ]
 	res.ls$covAll_chipAll_TYPE_KLy.df <- subset(res.ls$covAll_chipAll_TYPE_KLy,select=-c(GsKey))
+	res.ls$covAll_chipAll_TYPE_KLy.df <- res.ls$covAll_chipAll_TYPE_KLy.df[,colOrder]
 	}	
 
 	if(params.ls$Kl == "NO" || params.ls$Kl == "ALL" || params.ls$Kl == ""){
 	res.ls$covAll_chipAll_TYPE_KLn.df$FDR_BH_U    <- p.adjust (res.ls$covAll_chipAll_TYPE_KLn.df$Pvalue_U_dev, method = "BH")
 	res.ls$covAll_chipAll_TYPE_KLn.df$FDR_BH_TL   <- p.adjust (res.ls$covAll_chipAll_TYPE_KLn.df$Pvalue_TL_dev, method = "BH")
 	res.ls$covAll_chipAll_TYPE_KLn.df$FDR_BH_CNML <- p.adjust (res.ls$covAll_chipAll_TYPE_KLn.df$Pvalue_CNML_dev, method = "BH")
-	res.ls$covAll_chipAll_TYPE_KLn.df <- merge (res.ls$covAll_chipAll_TYPE_KLn.df, gs_info.df, all.x = T, all.y = F, by = "GsKey")
+	res.ls$covAll_chipAll_TYPE_KLn.df <- merge (gs_info.df, res.ls$covAll_chipAll_TYPE_KLn.df, all.x = F, all.y = T, by = "GsKey")
 	res.ls$covAll_chipAll_TYPE_KLn.df <- res.ls$covAll_chipAll_TYPE_KLn.df[order (res.ls$covAll_chipAll_TYPE_KLn.df$Pvalue_U_dev_s, decreasing = T), ]
 	res.ls$covAll_chipAll_TYPE_KLn.df <- subset(res.ls$covAll_chipAll_TYPE_KLn,select=-c(GsKey))
+	res.ls$covAll_chipAll_TYPE_KLn.df <- res.ls$covAll_chipAll_TYPE_KLn.df[,colOrder]
 	}
 
 	names(res.ls) <- dataNames
@@ -755,7 +747,6 @@ cnvGSAIn <- function(configFile,cnvGSA.in)
 {
 	cnvGSA.in <- f.readConfig(configFile,cnvGSA.in)
 	cnvGSA.in <- f.readData(cnvGSA.in)
-	cnvGSA.in <- f.formatBuildcovar(cnvGSA.in)
 	return(cnvGSA.in)
 }
 
