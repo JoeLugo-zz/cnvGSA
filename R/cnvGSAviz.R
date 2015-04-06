@@ -6,23 +6,6 @@
 #' @param cnvGSA.out A CnvGSAOutput S4 object
 #' @return Creates the plots to better understand the output
 
-# * strange behavior of ARC / NMDAR: including known loci, ARC significant for losses and NMDAR for gains, when removing known loci, both significant for losses (but ARC more) -- need to investigate at gene level
-# * synaptic sets: GO synaptic components, GO neuron projection components / morphogsListis and Darnell FMR1 target (from mouse) rank on top for losses, with as well as without known loci
-# * synaptic pathway panel: glutamatargic first and significant, with and without known loci; dopaminergic borderline significant only when including known loci
-# * neurophenotype: human autosomal dominant / X-linked, mouse abnormal behavior / neurological phenotype rank on top for losses, with as well as without known loci
-# * mouse phenotype panel: brain and beahvior-specific pehnotype only significant after total count correction, for losses, with as well as without known loci -- need to investigate gains if any trend
-# * brain expression: the set including very high and medium/high gsList without a strong pre-natal or post-natal bias is the most significant, the other are not (but need to keep in mind what the other represent)
-# * brain expression: inverse correlation between loss prevalence and expression tier
-# * constrain indexes show the expected correlation, with the top sets significant for losses (for GI, also wehn removing known loci); interestingly, GI index, not based on CNV data and predicting nonsynonymous intolerance, correlates better than predicted haploins.
-
-# set groups:
-# 1: synaptic and neurofunction
-
-# frame-A-a: 100%: significance U correction
-# frame-B-a: 45%: compare significance for different correction methods
-# frame-C-l: 60%: U correction (rescaled), coefficient
-# frame-C-r: 90%: support
-
 # f.makeViz(cnvGSA.in,cnvGSA.out)
 
 f.makeViz <- function(cnvGSA.in,cnvGSA.out)
@@ -52,8 +35,13 @@ f.makeViz <- function(cnvGSA.in,cnvGSA.out)
 	if (is.na(plotHeight))   {plotHeight <- 13}
 	if (is.na(labelSize))    {labelSize <- 0.7}
 
+	res.ls    <- vizData$res.ls
+	gsID.chv  <- get(paste("covAll_chipAll_",cnvType,"_KLy.df",sep=""),res.ls)$GsID
+
 	if (gsList != ""){
 			gsList <- unlist(strsplit(readLines(gsList),","))
+			gsList <- gsList[gsList %in% gsID.chv]
+			cat("Only using gene-sets that are in the $res.ls data frames.")
 		}
 		else{
 			stop("No genes to plot. Check gsList.")
@@ -61,7 +49,6 @@ f.makeViz <- function(cnvGSA.in,cnvGSA.out)
 
 	gs_all.ls <- vizData$gs_all.ls
 	cnv.df    <- vizData$cnv.df
-	res.ls    <- vizData$res.ls
 
 	if (length(gsList) == 0){
 		stop("No gene-sets in gsList.")
