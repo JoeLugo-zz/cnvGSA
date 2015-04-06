@@ -44,15 +44,15 @@ f.readConfig <- function(configFile,cnvGSA.in)
 	geneSetSizeMax  <- as.numeric(config.df[config.df$param == "geneSetSizeMax","value"])
 	filtGs          <- config.df[config.df$param == "filtGs","value"] 	
 	covInterest     <- config.df[config.df$param == "covInterest","value"] 	
-	thresholdSzCt   <- as.numeric(config.df[config.df$param == "thresholdSzCt","value"])
+	eventThreshold  <- as.numeric(config.df[config.df$param == "eventThreshold","value"])
 	fLevels         <- as.numeric(config.df[config.df$param == "fLevels","value"])
 	cores           <- as.numeric(config.df[config.df$param == "cores","value"])
 
 	config.ls <- list(cnvFile, phFile, geneIDFile, klGeneFile, klLociFile, gsFile, outputPath, geneListFile, config.df)
-	params.ls <- list(Kl, projectName, gsUSet, cnvType, covariates, klOlp, corrections, geneSep, keySep, geneSetSizeMin, geneSetSizeMax,filtGs,covInterest, thresholdSzCt, fLevels,cores)
+	params.ls <- list(Kl, projectName, gsUSet, cnvType, covariates, klOlp, corrections, geneSep, keySep, geneSetSizeMin, geneSetSizeMax,filtGs,covInterest, eventThreshold, fLevels,cores)
 
 	names(config.ls) <- list("cnvFile","phFile","geneIDFile","klGeneFile","klLociFile","gsFile","outputPath","geneListFile","config.df")
-	names(params.ls) <- list("Kl","projectName","gsUSet","cnvType","covariates","klOlp","corrections","geneSep","keySep","geneSetSizeMin","geneSetSizeMax","filtGs","covInterest","thresholdSzCt","fLevels","cores")
+	names(params.ls) <- list("Kl","projectName","gsUSet","cnvType","covariates","klOlp","corrections","geneSep","keySep","geneSetSizeMin","geneSetSizeMax","filtGs","covInterest","eventThreshold","fLevels","cores")
 
 	if ("" %in% config.ls || "" %in% params.ls){
 		warning("There are empty values in the config file")
@@ -426,9 +426,9 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 		params.ls$covariates <- ""
 	}
 
-	if (is.na(params.ls$thresholdSzCt)){
-		params.ls$thresholdSzCt <- 1
-		cnvGSA.in@params.ls$thresholdSzCt <- 1
+	if (is.na(params.ls$eventThreshold)){
+		params.ls$eventThreshold <- 1
+		cnvGSA.in@params.ls$eventThreshold <- 1
 	}
 
 	if (is.na(params.ls$fLevels)){
@@ -484,7 +484,7 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 			if (var.ch %in% rownames (glm.anova["Pr(>Chi)"])) {return (glm.anova["Pr(>Chi)"][var.ch, "Pr(>Chi)"])}
 			else {return (NA)} }
 
-	f.testGLM_wrap <- function (gs.colnames, data.df, covar.chv, u.gskey, covInterest, thresholdSzCt, fLevels, cores)
+	f.testGLM_wrap <- function (gs.colnames, data.df, covar.chv, u.gskey, covInterest, eventThreshold, fLevels, cores)
 		{
 		# CASES
 		data_sz.ix <- which (data.df$Condition == 1) # which rowws meet this requirement 
@@ -520,9 +520,9 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 
 		# t returns the transpose of a matrix
 		# res.mx <- t (sapply (gs.colnames , f.testGLM_unit, data.df = data.df, covar.chv = covar.chv, u.gskey = u.gskey, sz.ix = data_sz.ix, ct.ix = data_ct.ix, 
-					 # correct.ls = params.ls$corrections, covInterest = covInterest, thresholdSzCt = thresholdSzCt,data_sz.df=data_sz.df,data_ct.df=data_ct.df,s_sz.n=s_sz.n,s_ct.n=s_ct.n))
+					 # correct.ls = params.ls$corrections, covInterest = covInterest, eventThreshold = eventThreshold,data_sz.df=data_sz.df,data_ct.df=data_ct.df,s_sz.n=s_sz.n,s_ct.n=s_ct.n))
 		res.mx <- t (as.data.frame(foreach(i=1:length(gs.colnames)) %dopar% f.testGLM_unit(gs.colnames[i],data.df = data.df, covar.chv = covar.chv, u.gskey = u.gskey, sz.ix = data_sz.ix, ct.ix = data_ct.ix, 
-					 correct.ls = params.ls$corrections, covInterest = covInterest, thresholdSzCt = thresholdSzCt,data_sz.df=data_sz.df,data_ct.df=data_ct.df,s_sz.n=s_sz.n,s_ct.n=s_ct.n)))
+					 correct.ls = params.ls$corrections, covInterest = covInterest, eventThreshold = eventThreshold,data_sz.df=data_sz.df,data_ct.df=data_ct.df,s_sz.n=s_sz.n,s_ct.n=s_ct.n)))
 		
 		res.df <- as.data.frame (res.mx)
 		res.df$GsKey <- gs.colnames
@@ -543,7 +543,7 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 		}
 
 	# 5.2. LOGISTIC REGRESSION TEST
-	f.testGLM_unit <- function (gs.colname, data.df, covar.chv, u.gskey, sz.ix, ct.ix, correct.ls, covInterest, thresholdSzCt,data_sz.df,data_ct.df,s_sz.n,s_ct.n)
+	f.testGLM_unit <- function (gs.colname, data.df, covar.chv, u.gskey, sz.ix, ct.ix, correct.ls, covInterest, eventThreshold,data_sz.df,data_ct.df,s_sz.n,s_ct.n)
 		{
 		
 		cat(match(gs.colname,gs_colnames_TYPE.chv),"out of",totalLenGs)	
@@ -612,8 +612,8 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 		set_gn_sz.nv <- data.df[sz.ix, gs.colname]
 		set_gn_ct.nv <- data.df[ct.ix, gs.colname]
 
-		sz.ls <- unlist(lapply(lev.ls,function(x) nrow (subset (data_sz.df, subset = set_gn_sz.nv >= thresholdSzCt & data_sz.df[,covInterest] == x)) / nrow (subset (data_sz.df, subset = data_sz.df[,covInterest] == x)) * 100))
-		ct.ls <- unlist(lapply(lev.ls,function(x) nrow (subset (data_ct.df, subset = set_gn_ct.nv >= thresholdSzCt & data_ct.df[,covInterest] == x)) / nrow (subset (data_ct.df, subset = data_ct.df[,covInterest] == x)) * 100))
+		sz.ls <- unlist(lapply(lev.ls,function(x) nrow (subset (data_sz.df, subset = set_gn_sz.nv >= eventThreshold & data_sz.df[,covInterest] == x)) / nrow (subset (data_sz.df, subset = data_sz.df[,covInterest] == x)) * 100))
+		ct.ls <- unlist(lapply(lev.ls,function(x) nrow (subset (data_ct.df, subset = set_gn_ct.nv >= eventThreshold & data_ct.df[,covInterest] == x)) / nrow (subset (data_ct.df, subset = data_ct.df[,covInterest] == x)) * 100))
 
 		output.nv <- c (coeff, pvalue_glm, pvalue_dev, pvalue_dev_s,
 						coeff_U, pvalue_U_glm, pvalue_U_dev, pvalue_U_dev_s,
@@ -638,13 +638,13 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 	if(params.ls$Kl == "YES" || params.ls$Kl == "ALL" || params.ls$Kl == ""){
 	cat("Running test with known loci")
 	cat("\n")
-	res.ls$covAll_chipAll_TYPE_KLy.df <- f.testGLM_wrap (gs.colnames=gs_colnames_TYPE.chv, data.df=ph_TYPE.df, covar.chv=params.ls$covariates, u.gskey=setU.gskey, covInterest=params.ls$covInterest, thresholdSzCt=params.ls$thresholdSzCt, fLevels=params.ls$fLevels, cores=params.ls$cores)
+	res.ls$covAll_chipAll_TYPE_KLy.df <- f.testGLM_wrap (gs.colnames=gs_colnames_TYPE.chv, data.df=ph_TYPE.df, covar.chv=params.ls$covariates, u.gskey=setU.gskey, covInterest=params.ls$covInterest, eventThreshold=params.ls$eventThreshold, fLevels=params.ls$fLevels, cores=params.ls$cores)
 	gc (); gc (); gc ()}
 	# Looking at all rows where there is no overlap according to the SID
 	if (params.ls$Kl == "NO" || params.ls$Kl == "ALL" || params.ls$Kl == ""){
 	cat("Running test without known loci")
 	cat("\n")
-	res.ls$covAll_chipAll_TYPE_KLn.df <- f.testGLM_wrap (gs.colnames=gs_colnames_TYPE.chv, data.df=subset (ph_TYPE.df, OlpKL_SID == 0), covar.chv=params.ls$covariates, u.gskey=setU.gskey, covInterest=params.ls$covInterest, thresholdSzCt=params.ls$thresholdSzCt, fLevels = params.ls$fLevels, cores=params.ls$cores)
+	res.ls$covAll_chipAll_TYPE_KLn.df <- f.testGLM_wrap (gs.colnames=gs_colnames_TYPE.chv, data.df=subset (ph_TYPE.df, OlpKL_SID == 0), covar.chv=params.ls$covariates, u.gskey=setU.gskey, covInterest=params.ls$covInterest, eventThreshold=params.ls$eventThreshold, fLevels = params.ls$fLevels, cores=params.ls$cores)
 	gc (); gc (); gc ()}
 	}
 
