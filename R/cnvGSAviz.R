@@ -22,13 +22,14 @@ f.makeViz <- function(cnvGSA.in,cnvGSA.out)
 	config.df <- cnvGSA.in@config.ls$config.df
 
 	Kl            <- config.df[config.df$param == "Kl","value"]
-	FDRThreshold  <- as.numeric(config.df[config.df$param == "FDRThreshold","value"])
+	gsList        <- config.df[config.df$param == "gsList","value"]
 	gsList        <- config.df[config.df$param == "gsList","value"]
 	cnvType       <- config.df[config.df$param == "cnvType","value"]
-	plotHeight    <- as.numeric(config.df[config.df$param == "plotHeight","value"])
 	outputPathViz <- config.df[config.df$param == "outputPathViz","value"]
 	labelSize     <- as.numeric(config.df[config.df$param == "labelSize","value"])
-	gsList        <- config.df[config.df$param == "gsList","value"]
+	plotHeight    <- as.numeric(config.df[config.df$param == "plotHeight","value"])
+	FDRThreshold  <- as.numeric(config.df[config.df$param == "FDRThreshold","value"])
+	correctionViz <- unlist(strsplit(config.df[config.df$param == "correctionViz","value"],","))
 
 	if (Kl == "")            {Kl <- "ALL"}
 	if (is.na(FDRThreshold)) {FDRThreshold <- 0.1}
@@ -86,38 +87,74 @@ f.makeViz <- function(cnvGSA.in,cnvGSA.out)
 	z_set.labels <- paste (z_set.gsid, gs_len.nv[z_set.gsid], sep = ": ")
 
 	if (Kl == "ALL"){
-		z_set1.col   <- rep ("gray30", length (z_set.gsid))
-		z_set2.col   <- rep ("gray30", length (z_set.gsid))
-		resObjectKly <- get(paste("covAll_chipAll_",cnvType,"_KLy.df",sep=""),res.ls)
-		resObjectKln <- get(paste("covAll_chipAll_",cnvType,"_KLn.df",sep=""),res.ls)
-		z_set1.df    <- resObjectKly[match (z_set.gsid, resObjectKly$GsID), ]
-		z_set2.df    <- resObjectKln[match (z_set.gsid, resObjectKln$GsID), ]
-		height_U.mx <- matrix (data = c (z_set1.df$Pvalue_U_dev_s, z_set2.df$Pvalue_U_dev_s), nrow = 2, byrow = T)
-		height_Uc.mx <- matrix (data = c (z_set1.df$Coeff_U, z_set2.df$Coeff_U), nrow = 2, byrow = T)
-		z_set1.col[which (z_set1.df$FDR_BH_U <= FDRThreshold)] <- "brown"
-		z_set2.col[which (z_set2.df$FDR_BH_U <= FDRThreshold)] <- "brown" 
-		border.vc <- c (z_set1.col, z_set2.col)
-		nc.vc <- z_set1.col
+		z_set1_U.col    <- rep ("gray30", length (z_set.gsid))
+		z_set2_U.col    <- rep ("gray30", length (z_set.gsid))
+		z_set1_TL.col   <- rep ("gray30", length (z_set.gsid))
+		z_set2_TL.col   <- rep ("gray30", length (z_set.gsid))
+		z_set1_CNML.col <- rep ("gray30", length (z_set.gsid))
+		z_set2_CNML.col <- rep ("gray30", length (z_set.gsid))
+		resObjectKly 	<- get(paste("covAll_chipAll_",cnvType,"_KLy.df",sep=""),res.ls)
+		resObjectKln 	<- get(paste("covAll_chipAll_",cnvType,"_KLn.df",sep=""),res.ls)
+		z_set1.df    	<- resObjectKly[match (z_set.gsid, resObjectKly$GsID), ]
+		z_set2.df    	<- resObjectKln[match (z_set.gsid, resObjectKln$GsID), ]
+		height_U.mx 	<- matrix (data = c (z_set1.df$Pvalue_U_dev_s, z_set2.df$Pvalue_U_dev_s), nrow = 2, byrow = T)
+		height_Uc.mx 	<- matrix (data = c (z_set1.df$Coeff_U, z_set2.df$Coeff_U), nrow = 2, byrow = T)
+		height_TLc.mx 	<- matrix (data = c (z_set1.df$Coeff_TL, z_set2.df$Coeff_TL), nrow = 2, byrow = T)
+		height_CNMLc.mx <- matrix (data = c (z_set1.df$Coeff_CNML, z_set2.df$Coeff_CNML), nrow = 2, byrow = T)
+		z_set1_U.col[which (z_set1.df$FDR_BH_U 		 <= FDRThreshold)] <- "brown"
+		z_set2_U.col[which (z_set2.df$FDR_BH_U 		 <= FDRThreshold)] <- "brown" 
+		z_set1_TL.col[which (z_set1.df$FDR_BH_TL 	 <= FDRThreshold)] <- "brown"
+		z_set2_TL.col[which (z_set2.df$FDR_BH_TL 	 <= FDRThreshold)] <- "brown" 
+		z_set1_CNML.col[which (z_set1.df$FDR_BH_CNML <= FDRThreshold)] <- "brown"
+		z_set2_CNML.col[which (z_set2.df$FDR_BH_CNML <= FDRThreshold)] <- "brown" 
+		border_U.vc 	<- c (z_set1_U.col, z_set2_U.col)
+		border_TL.vc 	<- c (z_set1_TL.col, z_set2_TL.col)
+		border_CNML.vc 	<- c (z_set1_CNML.col, z_set2_CNML.col)
+		nc_U.vc 		<- z_set1_U.col
+		nc_TL.vc 		<- z_set1_TL.col
+		nc_CNML.vc 		<- z_set1_CNML.col
 	} else if (Kl == "YES"){
-		z_set1.col   <- rep ("gray30", length (z_set.gsid))
-		resObjectKly <- get(paste("covAll_chipAll_",cnvType,"_KLy.df",sep=""),res.ls)
-		z_set1.df    <- resObjectKly[match (z_set.gsid, resObjectKly$GsID), ]
-		height_U.mx <- matrix (data = c (z_set1.df$Pvalue_U_dev_s), nrow = 1, byrow = T)
-		height_Uc.mx <- matrix (data = c (z_set1.df$Coeff_U), nrow = 1, byrow = T)
-		z_set1.col[which (z_set1.df$FDR_BH_U <= FDRThreshold)] <- "brown"
-		border.vc <- c (z_set1.col)
-		nc.vc <- z_set1.col
+		z_set1_U.col    <- rep ("gray30", length (z_set.gsid))
+		z_set1_TL.col   <- rep ("gray30", length (z_set.gsid))
+		z_set1_CNML.col <- rep ("gray30", length (z_set.gsid))
+		resObjectKly 	<- get(paste("covAll_chipAll_",cnvType,"_KLy.df",sep=""),res.ls)
+		z_set1.df    	<- resObjectKly[match (z_set.gsid, resObjectKly$GsID), ]
+		height_U.mx 	<- matrix (data = c (z_set1.df$Pvalue_U_dev_s), nrow = 1, byrow = T)
+		height_Uc.mx 	<- matrix (data = c (z_set1.df$Coeff_U), nrow = 1, byrow = T)
+		height_TLc.mx 	<- matrix (data = c (z_set1.df$Coeff_TL), nrow = 1, byrow = T)
+		height_CNMLc.mx <- matrix (data = c (z_set1.df$Coeff_CNML), nrow = 1, byrow = T)
+		z_set1_U.col[which (z_set1.df$FDR_BH_U 		 <= FDRThreshold)] <- "brown"
+		border_U.vc		<- c (z_set1_U.col)
+		z_set1_TL.col[which (z_set1.df$FDR_BH_TL	 <= FDRThreshold)] <- "brown"
+		border_TL.vc 	<- c (z_set1_TL.col)
+		z_set1_CNML.col[which (z_set1.df$FDR_BH_CNML <= FDRThreshold)] <- "brown"
+		border_CNML.vc 	<- c (z_set1_CNML.col)
+		nc_U.vc 		<- z_set1_U.col
+		nc_TL.vc 		<- z_set1_TL.col
+		nc_CNML.vc 		<- z_set1_CNML.col
 	} else if (Kl == "NO"){
-		z_set2.col   <- rep ("gray30", length (z_set.gsid))
-		resObjectKln <- get(paste("covAll_chipAll_",cnvType,"_KLn.df",sep=""),res.ls)
-		z_set2.df    <- resObjectKln[match (z_set.gsid, resObjectKln$GsID), ]
-		height_U.mx <- matrix (data = c (z_set2.df$Pvalue_U_dev_s), nrow = 1, byrow = T)
-		height_Uc.mx <- matrix (data = c (z_set2.df$Coeff_U), nrow = 1, byrow = T)
-		z_set2.col[which (z_set2.df$FDR_BH_U <= FDRThreshold)] <- "brown" 
-		border.vc <- c (z_set2.col)
-		nc.vc <- z_set2.col
+		# z_set2.col   <- rep ("gray30", length (z_set.gsid))
+		z_set2_U.col    <- rep ("gray30", length (z_set.gsid))
+		z_set2_TL.col   <- rep ("gray30", length (z_set.gsid))
+		z_set2_CNML.col <- rep ("gray30", length (z_set.gsid))
+		resObjectKln 	<- get(paste("covAll_chipAll_",cnvType,"_KLn.df",sep=""),res.ls)
+		z_set2.df    	<- resObjectKln[match (z_set.gsid, resObjectKln$GsID), ]
+		height_U.mx 	<- matrix (data = c (z_set2.df$Pvalue_U_dev_s), nrow = 1, byrow = T)
+		height_Uc.mx 	<- matrix (data = c (z_set2.df$Coeff_U), nrow = 1, byrow = T)
+		height_TLc.mx 	<- matrix (data = c (z_set2.df$Coeff_TL), nrow = 1, byrow = T)
+		height_CNMLc.mx <- matrix (data = c (z_set2.df$Coeff_CNML), nrow = 1, byrow = T)
+		z_set2_U.col[which (z_set2.df$FDR_BH_U		 <= FDRThreshold)] <- "brown"
+		border_U.vc 	<- c (z_set2_U.col)
+		z_set2_TL.col[which (z_set2.df$FDR_BH_TL 	 <= FDRThreshold)] <- "brown"
+		border_TL.vc 	<- c (z_set2_TL.col)
+		z_set2_CNML.col[which (z_set2.df$FDR_BH_CNML <= FDRThreshold)] <- "brown"
+		border_CNML.vc 	<- c (z_set2_CNML.col)
+		nc_U.vc 		<- z_set2_U.col
+		nc_TL.vc 		<- z_set2_TL.col
+		nc_CNML.vc 		<- z_set2_CNML.col
 	}
 
+if ("uni_gc" %in% correctionViz || "ALL" %in% correctionViz || length(correctionViz) == 0){
 	pdf(paste(cnvType,"_EffectSize_U_",timestamp,".pdf",sep=""))
 	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,1,0), lwd = 2)
 	barplot (
@@ -125,9 +162,36 @@ f.makeViz <- function(cnvGSA.in,cnvGSA.out)
 		height = height_Uc.mx,
 		names.arg = z_set.labels, ylim = c (min (0,height_Uc.mx), ceiling(max (height_Uc.mx))), cex.names = labelSize,
 		beside = T, las = 2, col = rep (c ("gray60", "gray90"), times = length (z_set.labels)), 
-		border = as.character (matrix (data = border.vc, ncol = length (nc.vc), byrow = T)),
+		border = as.character (matrix (data = border_U.vc, ncol = length (nc_U.vc), byrow = T)),
 		ylab = "Coeff")
 	dev.off()
+}
+
+if ("tot_l" %in% correctionViz || "ALL" %in% correctionViz || length(correctionViz) == 0){
+	pdf(paste(cnvType,"_EffectSize_TL_",timestamp,".pdf",sep=""))
+	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,1,0), lwd = 2)
+	barplot (
+		main = paste(cnvType,": Effect Size: TL",sep=""),
+		height = height_TLc.mx,
+		names.arg = z_set.labels, ylim = c (min (0,height_TLc.mx), ceiling(max (height_TLc.mx))), cex.names = labelSize,
+		beside = T, las = 2, col = rep (c ("gray60", "gray90"), times = length (z_set.labels)), 
+		border = as.character (matrix (data = border_TL.vc, ncol = length (nc_TL.vc), byrow = T)),
+		ylab = "Coeff")
+	dev.off()
+}
+
+if ("cnvn_ml" %in% correctionViz || "ALL" %in% correctionViz || length(correctionViz) == 0){
+	pdf(paste(cnvType,"_EffectSize_CNML_",timestamp,".pdf",sep=""))
+	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,1,0), lwd = 2)
+	barplot (
+		main = paste(cnvType,": Effect Size: CNML",sep=""),
+		height = height_CNMLc.mx,
+		names.arg = z_set.labels, ylim = c (min (0,height_CNMLc.mx), ceiling(max (height_CNMLc.mx))), cex.names = labelSize,
+		beside = T, las = 2, col = rep (c ("gray60", "gray90"), times = length (z_set.labels)), 
+		border = as.character (matrix (data = border_CNML.vc, ncol = length (nc_CNML.vc), byrow = T)),
+		ylab = "Coeff")
+	dev.off()
+}
 
 	z_set.gsid   <- gsList
 	z_set.labels <- paste (z_set.gsid, gs_len.nv[z_set.gsid], sep = ": ")
@@ -156,61 +220,63 @@ f.makeViz <- function(cnvGSA.in,cnvGSA.out)
 	if (Kl == "ALL"){
 		z_set1_U.col    <- rep ("gray30", length (z_set.gsid))
 		z_set2_U.col    <- rep ("gray30", length (z_set.gsid))
-		z_set1_TL.col    <- rep ("gray30", length (z_set.gsid))
-		z_set2_TL.col    <- rep ("gray30", length (z_set.gsid))
-		z_set1_CNML.col    <- rep ("gray30", length (z_set.gsid))
-		z_set2_CNML.col    <- rep ("gray30", length (z_set.gsid))
-		height_U.mx    <- matrix (data = c (z_set1.df$Pvalue_U_dev_s, z_set2.df$Pvalue_U_dev_s), nrow = 2, byrow = T)
-		height_TL.mx   <- matrix (data = c (z_set1.df$Pvalue_TL_dev_s, z_set2.df$Pvalue_TL_dev_s), nrow = 2, byrow = T)
-		height_CNML.mx <- matrix (data = c (z_set1.df$Pvalue_CNML_dev_s, z_set2.df$Pvalue_CNML_dev_s), nrow = 2, byrow = T)
-		z_set1_U.col[which (z_set1.df$FDR_BH_U <= FDRThreshold)] <- "brown"
-		z_set2_U.col[which (z_set2.df$FDR_BH_U <= FDRThreshold)] <- "brown" 
-		z_set1_TL.col[which (z_set1.df$FDR_BH_TL <= FDRThreshold)] <- "brown"
-		z_set2_TL.col[which (z_set2.df$FDR_BH_TL <= FDRThreshold)] <- "brown" 
+		z_set1_TL.col   <- rep ("gray30", length (z_set.gsid))
+		z_set2_TL.col   <- rep ("gray30", length (z_set.gsid))
+		z_set1_CNML.col <- rep ("gray30", length (z_set.gsid))
+		z_set2_CNML.col <- rep ("gray30", length (z_set.gsid))
+		height_U.mx    	<- matrix (data = c (z_set1.df$Pvalue_U_dev_s, z_set2.df$Pvalue_U_dev_s), nrow = 2, byrow = T)
+		height_TL.mx   	<- matrix (data = c (z_set1.df$Pvalue_TL_dev_s, z_set2.df$Pvalue_TL_dev_s), nrow = 2, byrow = T)
+		height_CNML.mx 	<- matrix (data = c (z_set1.df$Pvalue_CNML_dev_s, z_set2.df$Pvalue_CNML_dev_s), nrow = 2, byrow = T)
+		z_set1_U.col[which (z_set1.df$FDR_BH_U		 <= FDRThreshold)] <- "brown"
+		z_set2_U.col[which (z_set2.df$FDR_BH_U		 <= FDRThreshold)] <- "brown" 
+		z_set1_TL.col[which (z_set1.df$FDR_BH_TL	 <= FDRThreshold)] <- "brown"
+		z_set2_TL.col[which (z_set2.df$FDR_BH_TL 	 <= FDRThreshold)] <- "brown" 
 		z_set1_CNML.col[which (z_set1.df$FDR_BH_CNML <= FDRThreshold)] <- "brown"
 		z_set2_CNML.col[which (z_set2.df$FDR_BH_CNML <= FDRThreshold)] <- "brown" 
-		border_U.vc <- c (z_set1_U.col, z_set2_U.col)
-		border_TL.vc <- c (z_set1_TL.col, z_set2_TL.col)
-		border_CNML.vc <- c (z_set1_CNML.col, z_set2_CNML.col)
-		nc_U.vc <- z_set1_U.col
-		nc_TL.vc <- z_set1_TL.col
-		nc_CNML.vc <- z_set1_CNML.col
+		border_U.vc 	<- c (z_set1_U.col, z_set2_U.col)
+		border_TL.vc 	<- c (z_set1_TL.col, z_set2_TL.col)
+		border_CNML.vc 	<- c (z_set1_CNML.col, z_set2_CNML.col)
+		nc_U.vc 		<- z_set1_U.col
+		nc_TL.vc 		<- z_set1_TL.col
+		nc_CNML.vc 		<- z_set1_CNML.col
 	} else if (Kl == "YES"){
 		z_set1_U.col    <- rep ("gray30", length (z_set.gsid))
-		z_set1_TL.col    <- rep ("gray30", length (z_set.gsid))
-		z_set1_CNML.col    <- rep ("gray30", length (z_set.gsid))
-		height_U.mx    <- matrix (data = c (z_set1.df$Pvalue_U_dev_s), nrow = 1, byrow = T)
-		height_TL.mx   <- matrix (data = c (z_set1.df$Pvalue_TL_dev_s), nrow = 1, byrow = T)
-		height_CNML.mx <- matrix (data = c (z_set1.df$Pvalue_CNML_dev_s), nrow = 1, byrow = T)
-		z_set1_U.col[which (z_set1.df$FDR_BH_U <= FDRThreshold)] <- "brown"
-		border_U.vc <- c (z_set1_U.col)
-		z_set1_TL.col[which (z_set1.df$FDR_BH_TL <= FDRThreshold)] <- "brown"
-		border_TL.vc <- c (z_set1_TL.col)
+		z_set1_TL.col   <- rep ("gray30", length (z_set.gsid))
+		z_set1_CNML.col <- rep ("gray30", length (z_set.gsid))
+		height_U.mx    	<- matrix (data = c (z_set1.df$Pvalue_U_dev_s), nrow = 1, byrow = T)
+		height_TL.mx   	<- matrix (data = c (z_set1.df$Pvalue_TL_dev_s), nrow = 1, byrow = T)
+		height_CNML.mx 	<- matrix (data = c (z_set1.df$Pvalue_CNML_dev_s), nrow = 1, byrow = T)
+		z_set1_U.col[which (z_set1.df$FDR_BH_U		 <= FDRThreshold)] <- "brown"
+		border_U.vc 	<- c (z_set1_U.col)
+		z_set1_TL.col[which (z_set1.df$FDR_BH_TL	 <= FDRThreshold)] <- "brown"
+		border_TL.vc 	<- c (z_set1_TL.col)
 		z_set1_CNML.col[which (z_set1.df$FDR_BH_CNML <= FDRThreshold)] <- "brown"
-		border_CNML.vc <- c (z_set1_CNML.col)
-		nc_U.vc <- z_set1_U.col
-		nc_TL.vc <- z_set1_TL.col
-		nc_CNML.vc <- z_set1_CNML.col
+		border_CNML.vc 	<- c (z_set1_CNML.col)
+		nc_U.vc 		<- z_set1_U.col
+		nc_TL.vc 		<- z_set1_TL.col
+		nc_CNML.vc 		<- z_set1_CNML.col
 	} else if (Kl == "NO"){
 		z_set2_U.col    <- rep ("gray30", length (z_set.gsid))
-		z_set2_TL.col    <- rep ("gray30", length (z_set.gsid))
-		z_set2_CNML.col    <- rep ("gray30", length (z_set.gsid))
-		height_U.mx    <- matrix (data = c (z_set2.df$Pvalue_U_dev_s), nrow = 1, byrow = T)
-		height_TL.mx   <- matrix (data = c (z_set2.df$Pvalue_TL_dev_s), nrow = 1, byrow = T)
-		height_CNML.mx <- matrix (data = c (z_set2.df$Pvalue_CNML_dev_s), nrow = 1, byrow = T)
-		z_set2_U.col[which (z_set2.df$FDR_BH_U <= FDRThreshold)] <- "brown"
-		border_U.vc <- c (z_set2_U.col)
-		z_set2_TL.col[which (z_set2.df$FDR_BH_TL <= FDRThreshold)] <- "brown"
-		border_TL.vc <- c (z_set2_TL.col)
+		z_set2_TL.col   <- rep ("gray30", length (z_set.gsid))
+		z_set2_CNML.col <- rep ("gray30", length (z_set.gsid))
+		height_U.mx    	<- matrix (data = c (z_set2.df$Pvalue_U_dev_s), nrow = 1, byrow = T)
+		height_TL.mx   	<- matrix (data = c (z_set2.df$Pvalue_TL_dev_s), nrow = 1, byrow = T)
+		height_CNML.mx 	<- matrix (data = c (z_set2.df$Pvalue_CNML_dev_s), nrow = 1, byrow = T)
+		z_set2_U.col[which (z_set2.df$FDR_BH_U		 <= FDRThreshold)] <- "brown"
+		border_U.vc 	<- c (z_set2_U.col)
+		z_set2_TL.col[which (z_set2.df$FDR_BH_TL	 <= FDRThreshold)] <- "brown"
+		border_TL.vc 	<- c (z_set2_TL.col)
 		z_set2_CNML.col[which (z_set2.df$FDR_BH_CNML <= FDRThreshold)] <- "brown"
-		border_CNML.vc <- c (z_set2_CNML.col)
-		nc_U.vc <- z_set2_U.col
-		nc_TL.vc <- z_set2_TL.col
-		nc_CNML.vc <- z_set2_CNML.col
+		border_CNML.vc 	<- c (z_set2_CNML.col)
+		nc_U.vc 		<- z_set2_U.col
+		nc_TL.vc 		<- z_set2_TL.col
+		nc_CNML.vc 		<- z_set2_CNML.col
 	}
-	min.n          <- min (c (min (height_U.mx), min (height_TL.mx), min (height_CNML.mx)))
-	max.n          <- max (c (max (height_U.mx), max (height_TL.mx), max (height_CNML.mx)))
 
+	min.n <- min (c (min (height_U.mx), min (height_TL.mx), min (height_CNML.mx)))
+	max.n <- max (c (max (height_U.mx), max (height_TL.mx), max (height_CNML.mx)))
+
+if ("uni_gc" %in% correctionViz || "ALL" %in% correctionViz || length(correctionViz) == 0){
 	z_set1.col    <- rep ("gray30", length (z_set.gsid))
 	z_set2.col    <- rep ("gray30", length (z_set.gsid))
 	pdf(paste(cnvType,"_Significance_Compare_U_",timestamp,".pdf",sep=""))
@@ -223,7 +289,9 @@ f.makeViz <- function(cnvGSA.in,cnvGSA.out)
 		border = as.character (matrix (data = border_U.vc, ncol = length (nc_U.vc), byrow = T)),
 		ylab = "-Log (Dev P-value) * sign (Coeff)")
 	dev.off()
+}
 
+if ("tot_l" %in% correctionViz || "ALL" %in% correctionViz || length(correctionViz) == 0){
 	pdf(paste(cnvType,"_Significance_Compare_TL_",timestamp,".pdf",sep=""))
 	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,1,0), lwd = 2)
 	barplot (
@@ -234,7 +302,9 @@ f.makeViz <- function(cnvGSA.in,cnvGSA.out)
 		border = as.character (matrix (data = border_TL.vc, ncol = length (nc_TL.vc), byrow = T)),
 		ylab = "-Log (Dev P-value) * sign (Coeff)")
 	dev.off()
+}
 
+if ("cnvn_ml" %in% correctionViz || "ALL" %in% correctionViz || length(correctionViz) == 0){
 	pdf(paste(cnvType,"_Significance_Compare_CNML_",timestamp,".pdf",sep=""))
 	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,1,0), lwd = 2)
 	barplot (
@@ -245,4 +315,5 @@ f.makeViz <- function(cnvGSA.in,cnvGSA.out)
 		border = as.character (matrix (data = border_CNML.vc, ncol = length (nc_CNML.vc), byrow = T)),
 		ylab = "-Log (Dev P-value) * sign (Coeff)")
 	dev.off()
+}
 }
