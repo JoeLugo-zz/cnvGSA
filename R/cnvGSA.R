@@ -512,8 +512,10 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 		cat("Using the following corrections:",params.ls$corrections)
 		cat("\n")
 
+		coreNum <- detectCores()
+
 		if(is.na(cores)){
-			cores <- detectCores()
+			cores <- coreNum
 		}
 
 		# t returns the transpose of a matrix
@@ -524,14 +526,18 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 		res.df$GsKey <- gs.colnames
 		}
 		else {
-		registerDoParallel(cores = cores)
-		cat(paste("Using ",cores," cores for parallelization of tests",sep=""))
-		cat("\n")
-		res.mx <- t (as.data.frame(foreach(i=1:length(gs.colnames)) %dopar% f.testGLM_unit(gs.colnames[i],data.df = data.df, covar.chv = covar.chv, u.gskey = u.gskey, sz.ix = data_sz.ix, ct.ix = data_ct.ix, 
-					 correct.ls = params.ls$corrections, covInterest = covInterest, eventThreshold = eventThreshold,data_sz.df=data_sz.df,data_ct.df=data_ct.df,s_sz.n=s_sz.n,s_ct.n=s_ct.n)))
-		res.df <- as.data.frame (res.mx)
-		res.df$GsKey <- gs.colnames
-		row.names(res.df) <- NULL
+			if (cores > coreNum){
+				cores <- coreNum
+				cat(paste("Cores specified exceeds number of cores detected. Only using ",coreNum," cores.",sep=""))
+			}
+			registerDoParallel(cores = cores)
+			cat(paste("Using ",cores," cores for parallelization of tests",sep=""))
+			cat("\n")
+			res.mx <- t (as.data.frame(foreach(i=1:length(gs.colnames)) %dopar% f.testGLM_unit(gs.colnames[i],data.df = data.df, covar.chv = covar.chv, u.gskey = u.gskey, sz.ix = data_sz.ix, ct.ix = data_ct.ix, 
+						 correct.ls = params.ls$corrections, covInterest = covInterest, eventThreshold = eventThreshold,data_sz.df=data_sz.df,data_ct.df=data_ct.df,s_sz.n=s_sz.n,s_ct.n=s_ct.n)))
+			res.df <- as.data.frame (res.mx)
+			res.df$GsKey <- gs.colnames
+			row.names(res.df) <- NULL
 		}
 
 		colnames (res.df) <- c ("Coeff",      "Pvalue_glm",      "Pvalue_dev",      "Pvalue_dev_s",
