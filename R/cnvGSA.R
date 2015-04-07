@@ -44,15 +44,16 @@ f.readConfig <- function(configFile,cnvGSA.in)
 	geneSetSizeMax  <- as.numeric(config.df[config.df$param == "geneSetSizeMax","value"])
 	filtGs          <- config.df[config.df$param == "filtGs","value"] 	
 	covInterest     <- config.df[config.df$param == "covInterest","value"] 	
+	parallel        <- config.df[config.df$param == "parallel","value"] 	
 	eventThreshold  <- as.numeric(config.df[config.df$param == "eventThreshold","value"])
 	fLevels         <- as.numeric(config.df[config.df$param == "fLevels","value"])
 	cores           <- as.numeric(config.df[config.df$param == "cores","value"])
 
 	config.ls <- list(cnvFile, phFile, geneIDFile, klGeneFile, klLociFile, gsFile, outputPath, geneListFile, config.df)
-	params.ls <- list(Kl, projectName, gsUSet, cnvType, covariates, klOlp, corrections, geneSep, keySep, geneSetSizeMin, geneSetSizeMax,filtGs,covInterest, eventThreshold, fLevels,cores)
+	params.ls <- list(Kl, projectName, gsUSet, cnvType, covariates, klOlp, corrections, geneSep, keySep, geneSetSizeMin, geneSetSizeMax,filtGs,covInterest, eventThreshold, fLevels,cores,parallel)
 
 	names(config.ls) <- list("cnvFile","phFile","geneIDFile","klGeneFile","klLociFile","gsFile","outputPath","geneListFile","config.df")
-	names(params.ls) <- list("Kl","projectName","gsUSet","cnvType","covariates","klOlp","corrections","geneSep","keySep","geneSetSizeMin","geneSetSizeMax","filtGs","covInterest","eventThreshold","fLevels","cores")
+	names(params.ls) <- list("Kl","projectName","gsUSet","cnvType","covariates","klOlp","corrections","geneSep","keySep","geneSetSizeMin","geneSetSizeMax","filtGs","covInterest","eventThreshold","fLevels","cores","parallel")
 
 	if ("" %in% config.ls || "" %in% params.ls){
 		warning("There are empty values in the config file")
@@ -514,19 +515,24 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 		if(is.na(cores)){
 			cores <- detectCores()
 		}
+
+		# t returns the transpose of a matrix
+		if (params.ls$parallel == "NO"){
+		res.mx <- t (sapply (gs.colnames , f.testGLM_unit, data.df = data.df, covar.chv = covar.chv, u.gskey = u.gskey, sz.ix = data_sz.ix, ct.ix = data_ct.ix, 
+					 correct.ls = params.ls$corrections, covInterest = covInterest, eventThreshold = eventThreshold,data_sz.df=data_sz.df,data_ct.df=data_ct.df,s_sz.n=s_sz.n,s_ct.n=s_ct.n))
+		res.df <- as.data.frame (res.mx)
+		res.df$GsKey <- gs.colnames
+		}
+		else {
 		registerDoParallel(cores = cores)
 		cat(paste("Using ",cores," cores for parallelization of tests",sep=""))
 		cat("\n")
-
-		# t returns the transpose of a matrix
-		# res.mx <- t (sapply (gs.colnames , f.testGLM_unit, data.df = data.df, covar.chv = covar.chv, u.gskey = u.gskey, sz.ix = data_sz.ix, ct.ix = data_ct.ix, 
-					 # correct.ls = params.ls$corrections, covInterest = covInterest, eventThreshold = eventThreshold,data_sz.df=data_sz.df,data_ct.df=data_ct.df,s_sz.n=s_sz.n,s_ct.n=s_ct.n))
 		res.mx <- t (as.data.frame(foreach(i=1:length(gs.colnames)) %dopar% f.testGLM_unit(gs.colnames[i],data.df = data.df, covar.chv = covar.chv, u.gskey = u.gskey, sz.ix = data_sz.ix, ct.ix = data_ct.ix, 
 					 correct.ls = params.ls$corrections, covInterest = covInterest, eventThreshold = eventThreshold,data_sz.df=data_sz.df,data_ct.df=data_ct.df,s_sz.n=s_sz.n,s_ct.n=s_ct.n)))
-		
 		res.df <- as.data.frame (res.mx)
 		res.df$GsKey <- gs.colnames
 		row.names(res.df) <- NULL
+		}
 
 		colnames (res.df) <- c ("Coeff",      "Pvalue_glm",      "Pvalue_dev",      "Pvalue_dev_s",
 								"Coeff_U",    "Pvalue_U_glm",    "Pvalue_U_dev",    "Pvalue_U_dev_s",
