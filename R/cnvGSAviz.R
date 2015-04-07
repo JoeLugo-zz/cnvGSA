@@ -45,8 +45,12 @@ f.makeViz <- function(cnvGSA.in,cnvGSA.out)
 			cat("Only using gene-sets that are in the $res.ls data frames.")
 		}
 		else{
-			stop("No genes to plot. Check gsList.")
+			stop("No genes to plot. Check the gene-set list you are using.")
 		}
+
+	if (length(gsList) == 0){
+		stop("No valid genes to plot. Please check that gene-sets are in the $res.ls data frames.")
+	}
 
 	gs_all.ls <- vizData$gs_all.ls
 	cnv.df    <- vizData$cnv.df
