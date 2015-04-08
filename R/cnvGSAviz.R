@@ -43,6 +43,7 @@ f.makeViz <- function(cnvGSA.in,cnvGSA.out)
 			gsList <- unlist(strsplit(readLines(gsList),","))
 			gsList <- gsList[gsList %in% gsID.chv]
 			cat("Only using gene-sets that are in the $res.ls data frames.")
+			cat("\n")
 		}
 		else{
 			stop("No genes to plot. Check the gene-set list you are using.")
