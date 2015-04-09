@@ -2,6 +2,7 @@
 library (GenomicRanges)
 library (doParallel)
 library (foreach)
+library (splitstackshape)
 
 # 2. Reading the config file
 #' Reading in the config file 
@@ -315,7 +316,7 @@ f.readData <- function(cnvGSA.in)
 	}
 
 	# spiltting up data for only loss or only gain 
-	cnv2gene_TYPE.df <- subset (cnv2gene.df, select = c (SID, geneID_TYPE))
+	cnv2gene_TYPE.df <- subset (cnv2gene.df, select = c (SID, geneID_TYPE, SubjCnvKey))
 
 	# making list of gene sets into data frame 
 	gs_sel_U.df <- stack (gs_sel_U.ls); names (gs_sel_U.df) <- c ("gID", "GsKey")
@@ -331,15 +332,16 @@ f.readData <- function(cnvGSA.in)
 	geneID.df <- read.table (config.ls$geneIDFile, header = T, sep = "\t", quote = "\"", stringsAsFactors = F) # "cnv_AGP_demo.txt" "PGC_41K_QC_exon.cnv.annot"
 
 	# parsing out gene-ids so only one gene per row
-	cnv_shr.df  <- subset(cnv.df,select = c("SID","Condition","TYPE","SubjCnvKey"))
-	sid_shr.df  <- subset(sid2gs_TYPE.df,select = c(SID,GsKey))
-	gene2sid.df <- merge(sid_shr.df,cnv_shr.df)
-	gene2sid.df <- merge(subset(gene2sid.df,select = -c(GsKey)),subset(cnv2gene.df,select=c(SubjCnvKey,geneID)),by="SubjCnvKey")
-	gene2sid.df <- gene2sid.df[which(!(is.na(gene2sid.df$geneID))),]
-	gene2sid.df <- gene2sid.df[! duplicated (gene2sid.df), ]
+	# cnv_shr.df  <- subset(cnv.df,select = c("SID","Condition","TYPE","SubjCnvKey"))
+	# sid_shr.df  <- subset(sid2gs_TYPE.df,select = c(SID,GsKey))
+	# gene2sid.df <- merge(sid_shr.df,cnv_shr.df)
+	# gene2sid.df <- merge(subset(gene2sid.df,select = -c(GsKey)),subset(cnv2gene.df,select=c(SubjCnvKey,geneID)),by="SubjCnvKey")
+	# gene2sid.df <- gene2sid.df[which(!(is.na(gene2sid.df$geneID))),]
+	# gene2sid.df <- gene2sid.df[! duplicated (gene2sid.df), ]
+	gene2sid.df <- cSplit(cnv.df ,splitCols = "geneID", sep = ";", direction = "long")
 
 	# Applying Thresholds - Gene Count Table
-	geneCount.tab <- table(gene2sid.df[,c("geneID","Condition")])
+	geneCount.tab <- table(gene2sid.df$geneID,gene2sid.df$Condition)
 	geneCount.df  <- as.data.frame.matrix(geneCount.tab); colnames(geneCount.df) <- c("Controls","Cases"); geneCount.df$geneID <- rownames(geneCount.df); row.names(geneCount.df) <- NULL;
 	geneCount.df  <- merge(geneCount.df,subset(geneID.df,select = -c(Symbol)),by.x="geneID",by.y="geneID"); geneCount.df <- geneCount.df[,c(1,4,2,3)];
 	
@@ -529,6 +531,7 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 			if (cores > coreNum){
 				cores <- coreNum
 				cat(paste("Cores specified exceeds number of cores detected. Only using ",coreNum," cores.",sep=""))
+				cat("\n")
 			}
 			registerDoParallel(cores = cores)
 			cat(paste("Using ",cores," cores for parallelization of tests",sep=""))
