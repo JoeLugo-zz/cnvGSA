@@ -8,7 +8,8 @@ setClass( "CnvGSAInput",
 		params.ls = "list",
 		cnvData.ls = "list",
 		phData.ls = "list",
-		gsData.ls = "list"
+		gsData.ls = "list",
+		geneID.ls = "list"
 	)
 )
 
@@ -18,10 +19,11 @@ CnvGSAInput <- function(
 					params.ls = list(),
 					cnvData.ls = list(),
 					phData.ls = list(),
-					gsData.ls = list()
+					gsData.ls = list(),
+					geneID.ls = list()
 				)
 {
-    new( "CnvGSAInput", config.ls = config.ls, params.ls = params.ls, cnvData.ls = cnvData.ls, phData.ls = phData.ls, gsData.ls = gsData.ls )
+    new( "CnvGSAInput", config.ls = config.ls, params.ls = params.ls, cnvData.ls = cnvData.ls, phData.ls = phData.ls, gsData.ls = gsData.ls, geneID.ls = geneID.ls )
 }
 
 # CnvGSAInput accessors
@@ -49,6 +51,11 @@ setGeneric( "gsData.ls", function(obj) standardGeneric("gsData.ls") )
 setGeneric( "gsData.ls<-", function(obj, value) standardGeneric("gsData.ls<-") )
 setMethod( "gsData.ls", "CnvGSAInput", function(obj){ obj@gsData.ls } )
 setReplaceMethod( "gsData.ls", "CnvGSAInput", function(obj, value){ obj@gsData.ls <- value } )
+
+setGeneric( "geneID.ls", function(obj) standardGeneric("geneID.ls") )
+setGeneric( "geneID.ls<-", function(obj, value) standardGeneric("geneID.ls<-") )
+setMethod( "geneID.ls", "CnvGSAInput", function(obj){ obj@geneID.ls } )
+setReplaceMethod( "geneID.ls", "CnvGSAInput", function(obj, value){ obj@geneID.ls <- value } )
 
 ## ---------------
 ## CnvGSAOutput S4

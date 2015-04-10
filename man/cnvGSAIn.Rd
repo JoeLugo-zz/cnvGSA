@@ -17,4 +17,9 @@ A cnvGSAInput S4 object
 \description{
 Creating the input S4 object needed to run the script
 }
+\examples{
+library(cnvGSAdata)
+data(cnvGSA_input_example)
+## See vignette for full details and worked example
+}
 

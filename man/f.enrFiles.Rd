@@ -17,4 +17,7 @@ Returns a list with the data frames of the GMT file and the generic file.
 \description{
 Prepare the files for the enrichment maps.
 }
+\examples{
+## See vignette for full details and worked example
+}
 

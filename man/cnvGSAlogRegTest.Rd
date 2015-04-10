@@ -17,4 +17,9 @@ A list of one or two objects depending on whether or not the user includes the k
 \description{
 This test uses 4 different correction models and is based on a case control study. It looks at odds ratios and calculates p-values which the researcher can analyze
 }
+\examples{
+library(cnvGSAdata)
+data(cnvGSA_output_example)
+## See vignette for full details and worked example
+}
 
