@@ -17,4 +17,9 @@ A CnvGSAInput object with the config.ls and params.ls updated
 \description{
 This function is used to read in all the values from the config file and change them in the S4 objects used throughout the scripts. If you would like to reload the config values, you will want to run this function.
 }
+\examples{
+library(cnvGSAdata)
+data(cnvGSA_input_example)
+## See vignette for full details and worked example
+}
 

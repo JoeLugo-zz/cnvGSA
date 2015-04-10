@@ -12,6 +12,10 @@ library (splitstackshape)
 #' @param configFile The file name and full path for the config file 
 #' @param cnvGSA.in A CnvGSAInput S4 object.
 #' @return A CnvGSAInput object with the config.ls and params.ls updated
+#' @examples
+#' library(cnvGSAdata)
+#' data(cnvGSA_input_example)
+#' ## See vignette for full details and worked example
 
 f.readConfig <- function(configFile,cnvGSA.in)
 {
@@ -365,6 +369,7 @@ f.readData <- function(cnvGSA.in)
 	# all cnvlength with type 3
 
 	cnv.df$CnvCount_TYPE <- with (cnv.df, as.numeric (TYPE %in% c (check_type)))
+	cnv.df$geneID_TYPE <- cnv.df$geneID; cnv.df$geneID_TYPE[which (cnv.df$TYPE != check_type)] <- NA
 
 	# 4.1. COVARIATES
 	# aggregate(formula = y[numeric data] ~ x[factors])
@@ -380,12 +385,14 @@ f.readData <- function(cnvGSA.in)
 
 	cnvData <- list(cnv.df,cnv2gene.df)
 	phData  <- list(ph.df,ph_TYPE.df)
-	gsData  <- list(gs_info.df,gs_sel_U.df,gs_colnames_TYPE.chv,gs.ls,geneCount.df,geneCount.tab,gs_all.ls)
+	gsData  <- list(gs_info.df,gs_sel_U.df,gs_colnames_TYPE.chv,gs.ls,geneCount.tab,gs_all.ls)
+	geneID  <- list(geneID.df)
 
 	cnvGSA.in@cnvData.ls <- cnvData; names(cnvGSA.in@cnvData.ls) <- list("cnv.df","cnv2gene.df")
 	cnvGSA.in@phData.ls  <- phData; names(cnvGSA.in@phData.ls)   <- list("ph.df","ph_TYPE.df")
-	cnvGSA.in@gsData.ls  <- gsData; names(cnvGSA.in@gsData.ls)   <- list("gs_info.df","gs_sel_U.df","gs_colnames_TYPE.chv","gs.ls","geneCount.df","geneCount.tab","gs_all.ls")
+	cnvGSA.in@gsData.ls  <- gsData; names(cnvGSA.in@gsData.ls)   <- list("gs_info.df","gs_sel_U.df","gs_colnames_TYPE.chv","gs.ls","geneCount.tab","gs_all.ls")
 	cnvGSA.in@params.ls$check_type <- check_type
+	cnvGSA.in@geneID.ls  <- geneID; names(cnvGSA.in@geneID.ls)   <- list("geneID.df")
 
 	return(cnvGSA.in)
 }
@@ -398,6 +405,10 @@ f.readData <- function(cnvGSA.in)
 #' @param cnvGSA.in A CnvGSAInput S4 object.
 #' @param cnvGSA.out A CnvGSAOutput S4 object.
 #' @return A list of one or two objects depending on whether or not the user includes the known loci in the analysis. Each object in the list contains the regression results for each gene set.
+#' @examples
+#' library(cnvGSAdata)
+#' data(cnvGSA_output_example)
+#' ## See vignette for full details and worked example
 
 cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 {
@@ -653,19 +664,21 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 	if(params.ls$Kl == "YES" || params.ls$Kl == "ALL" || params.ls$Kl == ""){
 	cat("Running test with known loci")
 	cat("\n")
-	res.ls$covAll_chipAll_TYPE_KLy.df <- f.testGLM_wrap (gs.colnames=gs_colnames_TYPE.chv, data.df=ph_TYPE.df, covar.chv=params.ls$covariates, u.gskey=setU.gskey, covInterest=params.ls$covInterest, eventThreshold=params.ls$eventThreshold, fLevels=params.ls$fLevels, cores=params.ls$cores)
+	res.ls$covAll_chipAll_TYPE_KLy.df <- f.testGLM_wrap (gs.colnames=gs_colnames_TYPE.chv, data.df=ph_TYPE.df, covar.chv=params.ls$covariates, u.gskey=setU.gskey, 
+														 covInterest=params.ls$covInterest, eventThreshold=params.ls$eventThreshold, fLevels=params.ls$fLevels, cores=params.ls$cores)
 	gc (); gc (); gc ()}
 	# Looking at all rows where there is no overlap according to the SID
 	if (params.ls$Kl == "NO" || params.ls$Kl == "ALL" || params.ls$Kl == ""){
 	cat("Running test without known loci")
 	cat("\n")
-	res.ls$covAll_chipAll_TYPE_KLn.df <- f.testGLM_wrap (gs.colnames=gs_colnames_TYPE.chv, data.df=subset (ph_TYPE.df, OlpKL_SID == 0), covar.chv=params.ls$covariates, u.gskey=setU.gskey, covInterest=params.ls$covInterest, eventThreshold=params.ls$eventThreshold, fLevels = params.ls$fLevels, cores=params.ls$cores)
+	res.ls$covAll_chipAll_TYPE_KLn.df <- f.testGLM_wrap (gs.colnames=gs_colnames_TYPE.chv, data.df=subset (ph_TYPE.df, OlpKL_SID == 0), covar.chv=params.ls$covariates, u.gskey=setU.gskey, 
+														 covInterest=params.ls$covInterest, eventThreshold=params.ls$eventThreshold, fLevels = params.ls$fLevels, cores=params.ls$cores)
 	gc (); gc (); gc ()}
 	}
 
 	ph_TYPE.df[,params.ls$covInterest] <- as.factor(ph_TYPE.df[,params.ls$covInterest])
 	lev.ls <- levels(ph_TYPE.df[,params.ls$covInterest])
-	colOrder <- c ( "GsID", "GsName", "GsSize", "Coeff", "Pvalue_glm", "Pvalue_dev", "Pvalue_dev_s",
+	colOrder <- c ( "GsID", "GsName", "GsSize", "Coeff", "Pvalue_glm", "Pvalue_dev", "Pvalue_dev_s", "FDR_BH",
 					"Coeff_U", "Pvalue_U_glm", "Pvalue_U_dev", "Pvalue_U_dev_s", "FDR_BH_U",
 					"Coeff_TL", "Pvalue_TL_glm", "Pvalue_TL_dev", "Pvalue_TL_dev_s", "FDR_BH_TL",
 					"Coeff_CNML", "Pvalue_CNML_glm", "Pvalue_CNML_dev", "Pvalue_CNML_dev_s", "FDR_BH_CNML",
@@ -676,6 +689,7 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 					paste (c ("CTRL"), lev.ls, sep = "_"))
 
 	if(params.ls$Kl == "YES" || params.ls$Kl == "ALL" || params.ls$Kl == ""){
+	res.ls$covAll_chipAll_TYPE_KLy.df$FDR_BH      <- p.adjust (res.ls$covAll_chipAll_TYPE_KLy.df$Pvalue_dev, method = "BH")	
 	res.ls$covAll_chipAll_TYPE_KLy.df$FDR_BH_U    <- p.adjust (res.ls$covAll_chipAll_TYPE_KLy.df$Pvalue_U_dev, method = "BH")
 	res.ls$covAll_chipAll_TYPE_KLy.df$FDR_BH_TL   <- p.adjust (res.ls$covAll_chipAll_TYPE_KLy.df$Pvalue_TL_dev, method = "BH")
 	res.ls$covAll_chipAll_TYPE_KLy.df$FDR_BH_CNML <- p.adjust (res.ls$covAll_chipAll_TYPE_KLy.df$Pvalue_CNML_dev, method = "BH")
@@ -686,6 +700,7 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 	}	
 
 	if(params.ls$Kl == "NO" || params.ls$Kl == "ALL" || params.ls$Kl == ""){
+	res.ls$covAll_chipAll_TYPE_KLn.df$FDR_BH      <- p.adjust (res.ls$covAll_chipAll_TYPE_KLn.df$Pvalue_U_dev, method = "BH")	
 	res.ls$covAll_chipAll_TYPE_KLn.df$FDR_BH_U    <- p.adjust (res.ls$covAll_chipAll_TYPE_KLn.df$Pvalue_U_dev, method = "BH")
 	res.ls$covAll_chipAll_TYPE_KLn.df$FDR_BH_TL   <- p.adjust (res.ls$covAll_chipAll_TYPE_KLn.df$Pvalue_TL_dev, method = "BH")
 	res.ls$covAll_chipAll_TYPE_KLn.df$FDR_BH_CNML <- p.adjust (res.ls$covAll_chipAll_TYPE_KLn.df$Pvalue_CNML_dev, method = "BH")
@@ -725,6 +740,12 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 #' @param cnvGSA.in A CnvGSAInput S4 object.
 #' @param cnvGSA.out A CnvGSAOutput S4 object.
 #' @return A list where each object is a table corresponding to on gene-set. 
+#' @examples
+#' library(cnvGSAdata)
+#' data(cnvGSA_input_example)
+#' data(cnvGSA_output_example)
+#' cnvGSA.out <- cnvGSAgsTables(cnvGSA.in,cnvGSA.out)
+#' ## See vignette for full details and worked example
 
 cnvGSAgsTables <- function(cnvGSA.in,cnvGSA.out)
 {
@@ -741,10 +762,71 @@ cnvGSAgsTables <- function(cnvGSA.in,cnvGSA.out)
 
 	cnv2gene.df <- cnvGSA.in@cnvData.ls$cnv2gene.df # as.data.frame(master.ls[5])
 	gs_sel_U.df <- cnvGSA.in@gsData.ls$gs_sel_U.df # as.data.frame(master.ls[6])
+	geneID.df 	<- cnvGSA.in@geneID.ls$geneID.df
+	geneSep 	<- cnvGSA.in@params.ls$geneSep
+	params.ls   <- cnvGSA.in@params.ls
+	cores  		<- params.ls$cores
+	coreNum 	<- detectCores()
+
+	# spiltting up data for only loss or only gain 
+	cnv2gene_TYPE.df <- subset (cnv2gene.df, select = c (SID, geneID_TYPE, SubjCnvKey))
+	sid2gs_TYPE.df <- merge (cnv2gene_TYPE.df, gs_sel_U.df, by.x = "geneID_TYPE", by.y = "gID", all.x = T, all.y = F)
+	cnv.df <- cnvGSA.in@cnvData.ls$cnv.df
+
+	# t returns the transpose of a matrix
+	if (params.ls$parallel == "NO"){
+	# res.mx <- t (sapply (gs.colnames , f.testGLM_unit, data.df = data.df, covar.chv = covar.chv, u.gskey = u.gskey, sz.ix = data_sz.ix, ct.ix = data_ct.ix, 
+	# 			 correct.ls = params.ls$corrections, covInterest = covInterest, eventThreshold = eventThreshold,data_sz.df=data_sz.df,data_ct.df=data_ct.df,s_sz.n=s_sz.n,s_ct.n=s_ct.n))
+	# res.df <- as.data.frame (res.mx)
+	# res.df$GsKey <- gs.colnames
+	genes.ls <- strsplit(cnv.df$geneID,geneSep)
+	geneLen.chv <- 1:length(genes.ls)
+	geneSymbol.ls <- lapply(geneLen.chv,function(x) paste(geneID.df[which(geneID.df$geneID %in% unlist(genes.ls[x])),]$Symbol,collapse=geneSep))
+	cnv.df$Symbol <- geneSymbol.ls
+
+	genes_TYPE.ls <- strsplit(cnv.df$geneID_TYPE,geneSep)
+	geneLen_TYPE.chv <- 1:length(genes_TYPE.ls)
+	geneSymbol_TYPE.ls <- lapply(geneLen_TYPE.chv,function(x) paste(geneID.df[which(geneID.df$geneID %in% unlist(genes_TYPE.ls[x])),]$Symbol,collapse=geneSep))
+	cnv.df$Symbol_TYPE <- geneSymbol_TYPE.ls
+	}
+	else {
+		if (cores > coreNum){
+			cores <- coreNum
+			cat(paste("Cores specified exceeds number of cores detected. Only using ",coreNum," cores.",sep=""))
+			cat("\n")
+		}
+		registerDoParallel(cores = cores)
+		cat(paste("Using ",cores," cores for parallelization of tests",sep=""))
+		cat("\n")
+		# res.mx <- t (as.data.frame(foreach(i=1:length(gs.colnames)) %dopar% f.testGLM_unit(gs.colnames[i],data.df = data.df, covar.chv = covar.chv, u.gskey = u.gskey, sz.ix = data_sz.ix, ct.ix = data_ct.ix, 
+		# 			 correct.ls = params.ls$corrections, covInterest = covInterest, eventThreshold = eventThreshold,data_sz.df=data_sz.df,data_ct.df=data_ct.df,s_sz.n=s_sz.n,s_ct.n=s_ct.n)))
+		# res.df <- as.data.frame (res.mx)
+		# res.df$GsKey <- gs.colnames
+		# row.names(res.df) <- NULL
+		genes.ls <- strsplit(cnv.df$geneID,geneSep)
+		geneLen.chv <- 1:length(genes.ls)
+		geneSymbol.ls <- foreach(i=1:length(genes.ls)) %dopar% unlist(paste(geneID.df[which(geneID.df$geneID %in% unlist(genes.ls[i])),]$Symbol,collapse=geneSep))
+		# geneSymbol.ls <- lapply(geneLen.chv,function(x) paste(geneID.df[which(geneID.df$geneID %in% unlist(genes.ls[x])),]$Symbol,collapse=geneSep))
+		cnv.df$Symbol <- geneSymbol.ls
+
+		genes_TYPE.ls <- strsplit(cnv.df$geneID_TYPE,geneSep)
+		geneLen_TYPE.chv <- 1:length(genes_TYPE.ls)
+		geneSymbol_TYPE.ls <- foreach(i=1:length(genes_TYPE.ls)) %dopar% unlist(paste(geneID.df[which(geneID.df$geneID %in% unlist(genes_TYPE.ls[i])),]$Symbol,collapse=geneSep))
+		# geneSymbol_TYPE.ls <- lapply(geneLen_TYPE.chv,function(x) paste(geneID.df[which(geneID.df$geneID %in% unlist(genes_TYPE.ls[x])),]$Symbol,collapse=geneSep))
+		cnv.df$Symbol_TYPE <- geneSymbol_TYPE.ls
+	}
+
+	gsTable_TYPE.df <- merge (subset(cnv.df,select = c(SID,CHR,BP1,BP2,TYPE,geneID,geneID_TYPE,Symbol,Symbol_TYPE)), subset(sid2gs_TYPE.df,select=-c(GsKey,geneID_TYPE,SubjCnvKey)), by = "SID")
+	gsTable_TYPE.df <- gsTable_TYPE.df[! duplicated (gsTable_TYPE.df), ]
+	gsTable_TYPE.df$Symbol <- as.character(gsTable_TYPE.df$Symbol)
+	gsTable_TYPE.df$Symbol_TYPE <- as.character(gsTable_TYPE.df$Symbol_TYPE)
+	gsTable_TYPE.df$Symbol[which(gsTable_TYPE.df$Symbol == "")] <- NA
+	gsTable_TYPE.df$Symbol_TYPE[which(gsTable_TYPE.df$Symbol_TYPE == "")] <- NA
+	gsTables.ls     <- split(gsTable_TYPE.df,gsTable_TYPE.df$GsID)
 
 	# Making the gsTables list 
-	gsTable_TYPE.df <- merge (subset(cnv2gene.df,select=-c(geneID)), subset(gs_sel_U.df,select=-c(GsKey)), by.x = "geneID_TYPE", by.y = "gID", all.x = T, all.y = F)
-	gsTables.ls     <- split(gsTable_TYPE.df,gsTable_TYPE.df$GsID)
+	# gsTable_TYPE.df <- merge (subset(cnv2gene.df,select=-c(geneID)), subset(gs_sel_U.df,select=-c(GsKey)), by.x = "geneID_TYPE", by.y = "gID", all.x = T, all.y = F)
+	# gsTables.ls     <- split(gsTable_TYPE.df,gsTable_TYPE.df$GsID)
 
 	cnvGSA.out@gsTables.ls <- gsTables.ls
 
@@ -757,6 +839,10 @@ cnvGSAgsTables <- function(cnvGSA.in,cnvGSA.out)
 #' @param configFile The file name for the config file including the full path.
 #' @param cnvGSA.in A CnvGSAInput S4 object.
 #' @return A cnvGSAInput S4 object
+#' @examples
+#' library(cnvGSAdata)
+#' data(cnvGSA_input_example)
+#' ## See vignette for full details and worked example
 
 cnvGSAIn <- function(configFile,cnvGSA.in)
 {

@@ -23,6 +23,7 @@ export(
         cnvData.ls, "cnvData.ls<-",
         phData.ls, "phData.ls<-",
         gsData.ls, "gsData.ls<-",
+        geneID.ls, "geneID.ls<-",
         CnvGSAOutput,
         res.ls,
         gsTables.ls,

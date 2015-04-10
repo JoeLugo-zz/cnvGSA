@@ -3,6 +3,8 @@
 #' @param cnvGSA.in A CnvGSAInput S4 object
 #' @param cnvGSA.out A CnvGSAOutput S4 object
 #' @return Returns a list with the data frames of the GMT file and the generic file. 
+#' @examples
+#' ## See vignette for full details and worked example
 
 f.enrFiles <- function(cnvGSA.in,cnvGSA.out)
 {
@@ -39,6 +41,7 @@ f.enrProcess <- function(cnvGSA.in,cnvGSA.out,Kl)
 
 	geneCount.tab <- cnvGSA.out@gsData.ls$geneCount.tab
 	res.ls        <- cnvGSA.out@res.ls
+	params.ls 	  <- cnvGSA.in@params.ls
 
 	if (pVal == "")             {pVal <- "Pvalue_U_dev"}
 	if (FDR == "")              {FDR <- "FDR_BH_U"}
@@ -64,8 +67,15 @@ f.enrProcess <- function(cnvGSA.in,cnvGSA.out,Kl)
 	enrGeneric$GsID <- as.factor(enrGeneric$GsID); enrGeneric$GsName <- as.factor(enrGeneric$GsName);
 
 	# MAKING GMT FILE
-	gs.ls       <- cnvGSA.out@gsData.ls$gs.ls
+	gs_all.ls       <- cnvGSA.out@gsData.ls$gs_all.ls
+	gs.ls         <- lapply (gs_all.ls, unique)
+	gs.ls         <- lapply (gs.ls, setdiff, y = NA)
+	gs_lengths.nv <- sapply (gs.ls, length)
 	gs_info.df  <- cnvGSA.out@gsData.ls$gs_info.df
+
+	if (params.ls$filtGs == "YES"){
+		gs.ls <- gs.ls[which (gs_lengths.nv >= params.ls$geneSetSizeMin & gs_lengths.nv <= params.ls$geneSetSizeMax)]
+	}
 
 	gs_info.df <- gs_info.df[order(gs_info.df$GsKey),]
 	gs.ls      <- gs.ls[order(names(gs.ls))]

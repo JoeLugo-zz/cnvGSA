@@ -17,4 +17,7 @@ Creates the plots to better understand the output
 \description{
 Creating the plots from the CnvGSAOutput data
 }
+\examples{
+## See vignette for full details and worked example
+}
 
