@@ -24,6 +24,8 @@
 \alias{gsData.ls,CnvGSAInput-method}
 \alias{gsData.ls<-}
 \alias{gsData.ls<-,CnvGSAInput-method}
+\alias{geneID.ls}
+\alias{geneID.ls,CnvGSAInput-method}
 \alias{geneID.ls<-}
 \alias{geneID.ls<-,CnvGSAInput-method}
 
