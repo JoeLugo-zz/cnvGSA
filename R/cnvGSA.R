@@ -323,10 +323,10 @@ f.readData <- function(cnvGSA.in)
 	cnv2gene_TYPE.df <- subset (cnv2gene.df, select = c (SID, geneID_TYPE, SubjCnvKey))
 
 	# making list of gene sets into data frame 
-	gs_sel_U.df <- stack (gs_sel_U.ls); names (gs_sel_U.df) <- c ("gID", "GsKey")
+	gs_sel_U.df <- stack (gs_sel_U.ls); names (gs_sel_U.df) <- c ("geneID", "GsKey")
 	gs_sel_U.df <- merge (gs_sel_U.df,subset(gs_info.df,select = c(GsKey,GsID,GsName)),by="GsKey")
 
-	sid2gs_TYPE.df <- merge (cnv2gene_TYPE.df, gs_sel_U.df, by.x = "geneID_TYPE", by.y = "gID", all.x = T, all.y = F)
+	sid2gs_TYPE.df <- merge (cnv2gene_TYPE.df, gs_sel_U.df, by.x = "geneID_TYPE", by.y = "geneID", all.x = T, all.y = F)
 
 	# this is what counts the events for each gene set 
 	sid2gs_TYPE.tab <- table (sid2gs_TYPE.df[, c ("SID", "GsKey")])
@@ -385,12 +385,12 @@ f.readData <- function(cnvGSA.in)
 
 	cnvData <- list(cnv.df,cnv2gene.df)
 	phData  <- list(ph.df,ph_TYPE.df)
-	gsData  <- list(gs_info.df,gs_sel_U.df,gs_colnames_TYPE.chv,gs.ls,geneCount.tab,gs_all.ls)
+	gsData  <- list(gs_info.df,gs_sel_U.df,gs_colnames_TYPE.chv,geneCount.tab,gs_all.ls)
 	geneID  <- list(geneID.df)
 
 	cnvGSA.in@cnvData.ls <- cnvData; names(cnvGSA.in@cnvData.ls) <- list("cnv.df","cnv2gene.df")
 	cnvGSA.in@phData.ls  <- phData; names(cnvGSA.in@phData.ls)   <- list("ph.df","ph_TYPE.df")
-	cnvGSA.in@gsData.ls  <- gsData; names(cnvGSA.in@gsData.ls)   <- list("gs_info.df","gs_sel_U.df","gs_colnames_TYPE.chv","gs.ls","geneCount.tab","gs_all.ls")
+	cnvGSA.in@gsData.ls  <- gsData; names(cnvGSA.in@gsData.ls)   <- list("gs_info.df","gs_sel_U.df","gs_colnames_TYPE.chv","geneCount.tab","gs_all.ls")
 	cnvGSA.in@params.ls$check_type <- check_type
 	cnvGSA.in@geneID.ls  <- geneID; names(cnvGSA.in@geneID.ls)   <- list("geneID.df")
 
@@ -768,7 +768,7 @@ cnvGSAgsTables <- function(cnvGSA.in,cnvGSA.out)
 
 	# spiltting up data for only loss or only gain 
 	cnv2gene_TYPE.df <- subset (cnv2gene.df, select = c (SID, geneID_TYPE, SubjCnvKey))
-	sid2gs_TYPE.df <- merge (cnv2gene_TYPE.df, gs_sel_U.df, by.x = "geneID_TYPE", by.y = "gID", all.x = T, all.y = F)
+	sid2gs_TYPE.df <- merge (cnv2gene_TYPE.df, gs_sel_U.df, by.x = "geneID_TYPE", by.y = "geneID", all.x = T, all.y = F)
 	cnv.df <- cnvGSA.in@cnvData.ls$cnv.df
 
 	# t returns the transpose of a matrix
