@@ -36,6 +36,7 @@ exportMethods(
         cnvData.ls, "cnvData.ls<-",
         phData.ls, "phData.ls<-",
         gsData.ls, "gsData.ls<-",
+        geneID.ls, "geneID.ls<-",
         res.ls,
         gsTables.ls,
         config.df
