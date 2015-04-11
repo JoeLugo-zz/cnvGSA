@@ -19,9 +19,7 @@ Creates the gene-set tables for each gene-set
 }
 \examples{
 library(cnvGSAdata)
-data(cnvGSA_input_example)
 data(cnvGSA_output_example)
-cnvGSA.out <- cnvGSAgsTables(cnvGSA.in,cnvGSA.out)
 ## See vignette for full details and worked example
 }
 
