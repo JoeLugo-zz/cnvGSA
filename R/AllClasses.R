@@ -67,7 +67,6 @@ setClass( "CnvGSAOutput",
 		gsTables.ls = "list",
 		gsData.ls = "list",
 		phData.ls = "list"
-		# config.df = "list"
 	)
 )
 
@@ -77,7 +76,6 @@ CnvGSAOutput <- function(
 					gsTables.ls = list(),
 					gsData.ls = list(),
 					phData.ls = list()
-					# config.df = list()
 				)
 {
     new( "CnvGSAOutput", res.ls = res.ls, gsTables.ls = gsTables.ls, gsData.ls = gsData.ls, phData.ls = phData.ls)#, config.df = config.df)
@@ -95,6 +93,3 @@ setMethod( "gsData.ls", "CnvGSAOutput", function(obj){ obj@gsData.ls } )
 
 setGeneric( "phData.ls", function(obj) standardGeneric("phData.ls") )
 setMethod( "phData.ls", "CnvGSAOutput", function(obj){ obj@phData.ls } )
-
-# setGeneric( "config.df", function(obj) standardGeneric("config.df") )
-# setMethod( "config.df", "CnvGSAOutput", function(obj){ obj@config.df } )

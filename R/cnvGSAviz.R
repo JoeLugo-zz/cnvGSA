@@ -25,13 +25,12 @@ f.makeViz <- function(cnvGSA.in,cnvGSA.out)
 
 	Kl            <- config.df[config.df$param == "Kl","value"]
 	gsList        <- config.df[config.df$param == "gsList","value"]
-	gsList        <- config.df[config.df$param == "gsList","value"]
 	cnvType       <- config.df[config.df$param == "cnvType","value"]
 	outputPathViz <- config.df[config.df$param == "outputPathViz","value"]
 	labelSize     <- as.numeric(config.df[config.df$param == "labelSize","value"])
 	plotHeight    <- as.numeric(config.df[config.df$param == "plotHeight","value"])
 	FDRThreshold  <- as.numeric(config.df[config.df$param == "FDRThreshold","value"])
-	correctionViz <- unlist(strsplit(config.df[config.df$param == "correctionViz","value"],","))
+	correctionViz <- gsub(" ","",unlist(strsplit(config.df[config.df$param == "correctionViz","value"],",")),fixed=TRUE)
 
 	if (Kl == "")            {Kl <- "ALL"}
 	if (is.na(FDRThreshold)) {FDRThreshold <- 0.1}
@@ -42,7 +41,7 @@ f.makeViz <- function(cnvGSA.in,cnvGSA.out)
 	gsID.chv  <- get(paste("covAll_chipAll_",cnvType,"_KLy.df",sep=""),res.ls)$GsID
 
 	if (gsList != ""){
-			gsList <- unlist(strsplit(readLines(gsList),","))
+			gsList <- gsub(" ","",unlist(strsplit(readLines(gsList),",")),fixed=TRUE)
 			gsList <- gsList[gsList %in% gsID.chv]
 			cat("Only using gene-sets that are in the $res.ls data frames.")
 			cat("\n")
@@ -152,7 +151,6 @@ f.makeViz <- function(cnvGSA.in,cnvGSA.out)
 		nc_TL.vc 		<- z_set1_TL.col
 		nc_CNML.vc 		<- z_set1_CNML.col
 	} else if (Kl == "NO"){
-		# z_set2.col   <- rep ("gray30", length (z_set.gsid))
 		z_set2.col      <- rep ("gray30", length (z_set.gsid))
 		z_set2_U.col    <- rep ("gray30", length (z_set.gsid))
 		z_set2_TL.col   <- rep ("gray30", length (z_set.gsid))
@@ -200,7 +198,7 @@ if ("uni_gc" %in% correctionViz || "ALL" %in% correctionViz || length(correction
 		names.arg = z_set.labels, ylim = c (min (0,height_Uc.mx), ceiling(max (height_Uc.mx))), cex.names = labelSize,
 		beside = T, las = 2, col = rep (c ("gray60", "gray90"), times = length (z_set.labels)), 
 		border = as.character (matrix (data = border_U.vc, ncol = length (nc_U.vc), byrow = T)),
-		ylab = "Coeff")
+		ylab = "Coeff_U")
 	dev.off()
 }
 
@@ -213,7 +211,7 @@ if ("tot_l" %in% correctionViz || "ALL" %in% correctionViz || length(correctionV
 		names.arg = z_set.labels, ylim = c (min (0,height_TLc.mx), ceiling(max (height_TLc.mx))), cex.names = labelSize,
 		beside = T, las = 2, col = rep (c ("gray60", "gray90"), times = length (z_set.labels)), 
 		border = as.character (matrix (data = border_TL.vc, ncol = length (nc_TL.vc), byrow = T)),
-		ylab = "Coeff")
+		ylab = "Coeff_TL")
 	dev.off()
 }
 
@@ -226,7 +224,7 @@ if ("cnvn_ml" %in% correctionViz || "ALL" %in% correctionViz || length(correctio
 		names.arg = z_set.labels, ylim = c (min (0,height_CNMLc.mx), ceiling(max (height_CNMLc.mx))), cex.names = labelSize,
 		beside = T, las = 2, col = rep (c ("gray60", "gray90"), times = length (z_set.labels)), 
 		border = as.character (matrix (data = border_CNML.vc, ncol = length (nc_CNML.vc), byrow = T)),
-		ylab = "Coeff")
+		ylab = "Coeff_CNML")
 	dev.off()
 }
 
