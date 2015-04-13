@@ -26,8 +26,7 @@ export(
         geneID.ls, "geneID.ls<-",
         CnvGSAOutput,
         res.ls,
-        gsTables.ls,
-        config.df
+        gsTables.ls
 )
 
 exportMethods(
@@ -38,6 +37,5 @@ exportMethods(
         gsData.ls, "gsData.ls<-",
         geneID.ls, "geneID.ls<-",
         res.ls,
-        gsTables.ls,
-        config.df
+        gsTables.ls
 )
