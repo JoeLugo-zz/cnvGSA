@@ -17,7 +17,7 @@
 
 \title{Class \code{"CnvGSAOutput"}}
 \description{
-Container class for the output structures produced by the main function (i.e. cnvGSA.Fisher()).
+Container class for the output structures produced by the main function (i.e. cnvGSAlogRegTest()).
 }
 \section{Slots}{
   \describe{
