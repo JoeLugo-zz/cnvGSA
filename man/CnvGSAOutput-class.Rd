@@ -12,8 +12,8 @@
 \alias{gsTables.ls,CnvGSAOutput-method}
 %\alias{gsData.ls}
 \alias{gsData.ls,CnvGSAOutput-method}
-\alias{config.df}
-\alias{config.df,CnvGSAOutput-method}
+% \alias{config.df}
+% \alias{config.df,CnvGSAOutput-method}
 
 \title{Class \code{"CnvGSAOutput"}}
 \description{
@@ -25,7 +25,7 @@ Container class for the output structures produced by the main function (i.e. cn
     \item{\code{res.ls}:}{Object of class \code{"list"} containing burden analysis results for gene-sets}
     \item{\code{gsTables.ls}:}{Object of class \code{"list"} containing the gene-set tables}
     \item{\code{gsData.ls}:}{Object of class \code{"list"} containing gene-set data}
-    \item{\code{config.df}:}{Object of class \code{"list"} containing config data frame}
+    % \item{\code{config.df}:}{Object of class \code{"list"} containing config data frame}
   }
 }
 \section{Methods}{
@@ -33,7 +33,7 @@ Container class for the output structures produced by the main function (i.e. cn
     \item{gsTables.ls}{\code{signature(obj = "CnvGSAOutput")}: Gets \code{gsTables.ls}.}
     \item{res.ls}{\code{signature(obj = "CnvGSAOutput")}: Gets \code{res.ls}.}
     \item{phData.ls}{\code{signature(obj = "CnvGSAOutput")}: Gets \code{phData.ls}.}
-    \item{config.df}{\code{signature(obj = "CnvGSAOutput")}: Gets \code{config.df}.}
+    % \item{config.df}{\code{signature(obj = "CnvGSAOutput")}: Gets \code{config.df}.}
     \item{gsData.ls}{\code{signature(obj = "CnvGSAOutput")}: Gets \code{gsData.ls}.}
   }
 }
