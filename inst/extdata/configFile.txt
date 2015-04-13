@@ -1,0 +1,52 @@
+param	value
+###############
+# LogReg Config
+###############
+## CONFIG.LS ##
+cnvFile	
+phFile	
+geneIDFile	
+klGeneFile	
+klLociFile	
+gsFile	
+outputPath	
+geneListFile	""
+## PARAMS.LS ##
+Kl	"ALL"
+projectName	"NS"
+gsUSet	""
+cnvType	1
+covariates	"SEX"
+klOlp	0.5	
+corrections	"no_corr,uni_gc,tot_l,cnvn_ml"
+geneSep	";"
+keySep	"@"
+geneSetSizeMax	1500
+geneSetSizeMin	25
+filtGs	"NO"
+covInterest	"SEX"
+eventThreshold	1
+fLevels	10
+cores	4
+parallel	"YES"
+############
+# Viz Config
+############
+FDRThreshold	0.1
+plotHeight	13
+gsList	
+outputPathViz	
+labelSize	0.7
+correctionViz	"no_corr,uni_gc,tot_l,cnvn_ml"
+############
+# ENR Config
+############
+pVal	"Pvalue_U_dev"
+FDR	"FDR_BH_U"
+coeff	"Coeff_U"
+keepCoeff	"YES"
+filtGsEnr	"NO"
+outputPathEnr	
+minCaseCount	0
+minControlCount	0
+minRatio	0
