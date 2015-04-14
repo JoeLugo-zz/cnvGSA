@@ -2,7 +2,7 @@
 % Please edit documentation in R/enrFiles.R
 \name{f.enrFiles}
 \alias{f.enrFiles}
-\title{Prepare the files for the enrichment maps.}
+\title{Prepares the files for the enrichment maps.}
 \usage{
 f.enrFiles(cnvGSA.in, cnvGSA.out)
 }
@@ -15,7 +15,7 @@ f.enrFiles(cnvGSA.in, cnvGSA.out)
 Returns a list with the data frames of the GMT file and the generic file.
 }
 \description{
-Prepare the files for the enrichment maps.
+Prepares the files for the enrichment maps.
 }
 \examples{
 ## See vignette for full details and worked example

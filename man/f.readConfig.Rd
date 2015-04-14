@@ -12,7 +12,7 @@ f.readConfig(configFile, cnvGSA.in)
 \item{cnvGSA.in}{A CnvGSAInput S4 object.}
 }
 \value{
-A CnvGSAInput object with the config.ls and params.ls updated
+A CnvGSAInput object with the updated config.ls and params.ls objects.
 }
 \description{
 This function is used to read in all the values from the config file and change them in the S4 objects used throughout the scripts. If you would like to reload the config values, you will want to run this function.
