@@ -1,6 +1,6 @@
 # VIZ
 
-#' Creating the plots from the CnvGSAOutput data
+#' Creates the plots from the CnvGSAOutput data.
 #'
 #' @param cnvGSA.in A CnvGSAInput S4 object
 #' @param cnvGSA.out A CnvGSAOutput S4 object
