@@ -12,7 +12,7 @@ cnvGSAgsTables(cnvGSA.in, cnvGSA.out)
 \item{cnvGSA.out}{A CnvGSAOutput S4 object.}
 }
 \value{
-A list where each object is a table corresponding to on gene-set.
+A list where each object is a table corresponding to one gene-set.
 }
 \description{
 Creates the gene-set tables for each gene-set

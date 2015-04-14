@@ -15,7 +15,7 @@ cnvGSAlogRegTest(cnvGSA.in, cnvGSA.out)
 A list of one or two objects depending on whether or not the user includes the known loci in the analysis. Each object in the list contains the regression results for each gene set.
 }
 \description{
-This test uses 4 different correction models and is based on a case control study. It looks at odds ratios and calculates p-values which the researcher can analyze
+This test uses 4 different correction models and requires a case control study. It looks at odds ratios and calculates statistics for the gene-set collection.
 }
 \examples{
 library(cnvGSAdata)

@@ -2,7 +2,7 @@
 % Please edit documentation in R/cnvGSAviz.R
 \name{f.makeViz}
 \alias{f.makeViz}
-\title{Creating the plots from the CnvGSAOutput data}
+\title{Creates the plots from the CnvGSAOutput data.}
 \usage{
 f.makeViz(cnvGSA.in, cnvGSA.out)
 }
@@ -15,7 +15,7 @@ f.makeViz(cnvGSA.in, cnvGSA.out)
 Creates the plots to better understand the output
 }
 \description{
-Creating the plots from the CnvGSAOutput data
+Creates the plots from the CnvGSAOutput data.
 }
 \examples{
 ## See vignette for full details and worked example
