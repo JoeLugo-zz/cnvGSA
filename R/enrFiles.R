@@ -1,4 +1,4 @@
-#' Prepare the files for the enrichment maps.
+#' Prepares the files for the enrichment maps.
 #'
 #' @param cnvGSA.in A CnvGSAInput S4 object
 #' @param cnvGSA.out A CnvGSAOutput S4 object

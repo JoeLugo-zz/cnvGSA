@@ -11,7 +11,7 @@ library (splitstackshape)
 #'
 #' @param configFile The file name and full path for the config file 
 #' @param cnvGSA.in A CnvGSAInput S4 object.
-#' @return A CnvGSAInput object with the config.ls and params.ls updated
+#' @return A CnvGSAInput object with the updated config.ls and params.ls objects.
 #' @examples
 #' library(cnvGSAdata)
 #' data(cnvGSA_input_example)
@@ -383,7 +383,7 @@ f.readData <- function(cnvGSA.in)
 # 5. Creating output
 #' Performing the logistic regression tests on the CNV data
 #'
-#' This test uses 4 different correction models and is based on a case control study. It looks at odds ratios and calculates p-values which the researcher can analyze
+#' This test uses 4 different correction models and requires a case control study. It looks at odds ratios and calculates statistics for the gene-set collection.
 #'
 #' @param cnvGSA.in A CnvGSAInput S4 object.
 #' @param cnvGSA.out A CnvGSAOutput S4 object.
@@ -716,7 +716,7 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 #'
 #' @param cnvGSA.in A CnvGSAInput S4 object.
 #' @param cnvGSA.out A CnvGSAOutput S4 object.
-#' @return A list where each object is a table corresponding to on gene-set. 
+#' @return A list where each object is a table corresponding to one gene-set.
 #' @examples
 #' library(cnvGSAdata)
 #' data(cnvGSA_output_example)
