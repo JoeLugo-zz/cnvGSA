@@ -36,7 +36,7 @@ f.enrProcess <- function(cnvGSA.in,cnvGSA.out,Kl)
 	outputPathEnr   <- config.df[config.df$param == "outputPathEnr","value"]
 	filtGsEnr       <- config.df[config.df$param == "filtGsEnr","value"]
 	minCaseCount    <- as.numeric(config.df[config.df$param == "minCaseCount","value"])
-	minControlCount <- as.numeric(config.df[config.df$param == "minControlCount","value"])
+	maxControlCount <- as.numeric(config.df[config.df$param == "maxControlCount","value"])
 	minRatio        <- as.numeric(config.df[config.df$param == "minRatio","value"])
 
 	geneCount.tab <- cnvGSA.out@gsData.ls$geneCount.tab
@@ -49,8 +49,8 @@ f.enrProcess <- function(cnvGSA.in,cnvGSA.out,Kl)
 	if (coeff == "")            {coeff <- "Coeff_U"}
 	if (keepCoeff == "")        {keepCoeff <- "YES"}
 	if (filtGsEnr == "")        {filtGsEnr <- "NO"}
-	if (is.na(minCaseCount))    {minCaseCount <- 0}
-	if (is.na(minControlCount)) {minControlCount <- 0}
+	if (is.na(minCaseCount))    {minCaseCount <- 1}
+	if (is.na(maxControlCount)) {maxControlCount <- 0}
 	if (is.na(minRatio))        {minRatio <- 0}
 
 	# MAKING GENERIC FILE
@@ -93,7 +93,7 @@ f.enrProcess <- function(cnvGSA.in,cnvGSA.out,Kl)
 			gs.ls$U <- geneID_temp.chv
 		} 
 	}
-	
+
 	names (gs.ls) <- paste ("GS", 1: length (gs.ls), sep = "")
 
 	gs_lengths.nv <- sapply (gs.ls, length)
@@ -106,7 +106,7 @@ f.enrProcess <- function(cnvGSA.in,cnvGSA.out,Kl)
 	gsGenes.ls <- lis
 	if (filtGsEnr == "YES"){
 		usrFilt.df    <- geneCount.tab[which(geneCount.tab[,"1"] >= minCaseCount),]
-		usrFilt.df    <- usrFilt.df[which(usrFilt.df[,"0"] >= minControlCount),]
+		usrFilt.df    <- usrFilt.df[which(usrFilt.df[,"0"] >= maxControlCount),]
 		usrFilt.df    <- usrFilt.df[which(usrFilt.df[,"1"]/usrFilt.df[,"0"] >= minRatio),]
 		filt.vc       <- rownames(usrFilt.df) # blacklist for genes to filter out
 		gsGenes.ls    <- lapply(gs.ls,setdiff,filt.vc)

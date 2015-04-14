@@ -44,7 +44,7 @@ f.readConfig <- function(configFile,cnvGSA.in)
 	klOlp           <- as.numeric(config.df[config.df$param == "klOlp","value"])
 	corrections     <- gsub(" ","",unlist(strsplit(config.df[config.df$param == "corrections","value"], split = ",")),fixed=TRUE)
 	geneSep         <- config.df[config.df$param == "geneSep","value"]
-	keySep          <- config.df[config.df$param == "keySep","value"]
+	# keySep          <- config.df[config.df$param == "keySep","value"]
 	geneSetSizeMin  <- as.numeric(config.df[config.df$param == "geneSetSizeMin","value"])
 	geneSetSizeMax  <- as.numeric(config.df[config.df$param == "geneSetSizeMax","value"])
 	filtGs          <- config.df[config.df$param == "filtGs","value"] 	
@@ -55,10 +55,10 @@ f.readConfig <- function(configFile,cnvGSA.in)
 	cores           <- as.numeric(config.df[config.df$param == "cores","value"])
 
 	config.ls <- list(cnvFile, phFile, geneIDFile, klGeneFile, klLociFile, gsFile, outputPath, geneListFile, config.df)
-	params.ls <- list(Kl, projectName, gsUSet, cnvType, covariates, klOlp, corrections, geneSep, keySep, geneSetSizeMin, geneSetSizeMax,filtGs,covInterest, eventThreshold, fLevels,cores,parallel)
+	params.ls <- list(Kl, projectName, gsUSet, cnvType, covariates, klOlp, corrections, geneSep, geneSetSizeMin, geneSetSizeMax,filtGs,covInterest, eventThreshold, fLevels,cores,parallel)
 
 	names(config.ls) <- list("cnvFile","phFile","geneIDFile","klGeneFile","klLociFile","gsFile","outputPath","geneListFile","config.df")
-	names(params.ls) <- list("Kl","projectName","gsUSet","cnvType","covariates","klOlp","corrections","geneSep","keySep","geneSetSizeMin","geneSetSizeMax","filtGs","covInterest","eventThreshold","fLevels","cores","parallel")
+	names(params.ls) <- list("Kl","projectName","gsUSet","cnvType","covariates","klOlp","corrections","geneSep","geneSetSizeMin","geneSetSizeMax","filtGs","covInterest","eventThreshold","fLevels","cores","parallel")
 
 	if ("" %in% config.ls || "" %in% params.ls){
 		warning("There are empty values in the config file")
@@ -107,14 +107,14 @@ f.readData <- function(cnvGSA.in)
 
 	geneID_temp.chv <- setdiff (unlist (strsplit (cnv.df$geneID, split = params.ls$geneSep)), NA)
 
-	if(params.ls$keySep == ""){params.ls$keySep <- "@";cnvGSA.in@params.ls$keySep <- "@";}
+	keySep <- "@"
 
-	cnv.df$CnvKey <- with (cnv.df, paste (CHR, BP1, BP2, TYPE, sep = params.ls$keySep)) # new col with all of these combined
+	cnv.df$CnvKey <- with (cnv.df, paste (CHR, BP1, BP2, TYPE, sep = keySep)) # new col with all of these combined
 
 	# PHENOTYPE / COVARIATE DATA
 	ph.df <- read.table (config.ls$phFile, header = T, sep = "\t", quote = "\"", stringsAsFactors = F) 
 	if (!("SID" %in% colnames(ph.df))){
-		ph.df$SID <- with (ph.df, paste (IID, FID, sep = params.ls$keySep)) # makes the SID
+		ph.df$SID <- with (ph.df, paste (IID, FID, sep = keySep)) # makes the SID
 		ph.df     <- subset (ph.df , select = - c (IID, FID, AFF))
 	}
 
@@ -136,7 +136,7 @@ f.readData <- function(cnvGSA.in)
 	kl_gene.df <- read.table (config.ls$klGeneFile, sep = "", header = T, comment.char = "", quote = "\"", stringsAsFactors = F)
 	kl_loci.df <- read.table (config.ls$klLociFile,  sep = "", header = T, comment.char = "", quote = "\"", stringsAsFactors = F)
 
-	kl_loci.df$locuskey <- with (kl_loci.df, paste ("KL", CHR, BP1, BP2, paste ("T:", TYPE, sep = ""), sep = params.ls$keySep))
+	kl_loci.df$locuskey <- with (kl_loci.df, paste ("KL", CHR, BP1, BP2, paste ("T:", TYPE, sep = ""), sep = keySep))
 
 	# 3.2. Read GeneSets 
 	load (config.ls$gsFile)
@@ -215,7 +215,7 @@ f.readData <- function(cnvGSA.in)
 
 	# 3.4. Mark known loci 
 	cnv.gr <- GRanges ( # creates class with single start and end point on the genome
-	seqnames = Rle (paste (cnv.df$CHR, cnv.df$TYPE, sep = params.ls$keySep)), ## match by chromosome and type
+	seqnames = Rle (paste (cnv.df$CHR, cnv.df$TYPE, sep = keySep)), ## match by chromosome and type
 	ranges   = IRanges (start = cnv.df$BP1, end = cnv.df$BP2),
 	strand   = Rle (strand (rep ("+", nrow (cnv.df)))),
 	chr      = cnv.df$CHR,
@@ -223,7 +223,7 @@ f.readData <- function(cnvGSA.in)
 	cnvkey   = cnv.df$CnvKey)
 	
 	loci.gr <- GRanges (
-	seqnames = Rle (paste (kl_loci.df$CHR, kl_loci.df$TYPE, sep = params.ls$keySep)), ## match by chromosome and type
+	seqnames = Rle (paste (kl_loci.df$CHR, kl_loci.df$TYPE, sep = keySep)), ## match by chromosome and type
 	ranges   = IRanges (start = kl_loci.df$BP1, end = kl_loci.df$BP2),
 	strand   = Rle (strand (rep ("+", nrow (kl_loci.df)))),
 	chr      = kl_loci.df$CHR,
@@ -255,7 +255,7 @@ f.readData <- function(cnvGSA.in)
 
 	# 3.4.1. By gene id 
 	cnv2.df <- cnv.df
-	cnv2.df$SubjCnvKey <- with (cnv2.df, paste (SID, CnvKey, sep = paste(params.ls$keySep,params.ls$keySep,sep = "")))
+	cnv2.df$SubjCnvKey <- with (cnv2.df, paste (SID, CnvKey, sep = paste(keySep,keySep,sep = "")))
 	cnv2.df <- cnv2.df[! duplicated (cnv2.df$SubjCnvKey), ]
 			
 	cnv2gene.ls <- strsplit (cnv2.df$geneID, params.ls$geneSep)
@@ -264,8 +264,8 @@ f.readData <- function(cnvGSA.in)
 	cnv2gene.df <- merge (cnv2gene.df, cnv2.df[, c ("SubjCnvKey", "CnvKey", "TYPE")], by = "SubjCnvKey", all = T)
 	
 	cnv2gene.df <- subset (cnv2gene.df, subset = ! is.na (geneID))
-	cnv2gene.df$geneID_type <- with (cnv2gene.df, paste (geneID, TYPE, sep = params.ls$keySep))
-	kl_gene.df$geneID_type  <- with (kl_gene.df,  paste (geneID,   TYPE, sep = params.ls$keySep))
+	cnv2gene.df$geneID_type <- with (cnv2gene.df, paste (geneID, TYPE, sep = keySep))
+	kl_gene.df$geneID_type  <- with (kl_gene.df,  paste (geneID,   TYPE, sep = keySep))
 	
 	# any CNV that has this gene will me marked 
 	kg.cnvkey <- subset (cnv2gene.df, subset = geneID_type %in% kl_gene.df$geneID_type, select = CnvKey, drop = T)
@@ -289,7 +289,7 @@ f.readData <- function(cnvGSA.in)
 
 	ph.df <- ph.df[! duplicated (ph.df), ]
 
-	cnv.df$SubjCnvKey <- with (cnv.df, paste (SID, CnvKey, sep = paste(params.ls$keySep, params.ls$keySep, sep = "")))
+	cnv.df$SubjCnvKey <- with (cnv.df, paste (SID, CnvKey, sep = paste(keySep, keySep, sep = "")))
 
 	# 3.6. main table
 	check_type <- params.ls$cnvType

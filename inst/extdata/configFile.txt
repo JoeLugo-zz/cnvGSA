@@ -20,7 +20,6 @@ covariates	"SEX"
 klOlp	0.5	
 corrections	"no_corr,uni_gc,tot_l,cnvn_ml"
 geneSep	";"
-keySep	"@"
 geneSetSizeMax	1500
 geneSetSizeMin	25
 filtGs	"NO"
@@ -48,5 +47,5 @@ keepCoeff	"YES"
 filtGsEnr	"NO"
 outputPathEnr	
 minCaseCount	0
-minControlCount	0
+maxControlCount	0
 minRatio	0
