@@ -2,7 +2,7 @@
 % Please edit documentation in R/cnvGSA.R
 \name{cnvGSAgsTables}
 \alias{cnvGSAgsTables}
-\title{Creating the gene-set tables for each gene-set}
+\title{Creates the gene-set tables for each gene-set.}
 \usage{
 cnvGSAgsTables(cnvGSA.in, cnvGSA.out)
 }
@@ -15,7 +15,7 @@ cnvGSAgsTables(cnvGSA.in, cnvGSA.out)
 A list where each object is a table corresponding to one gene-set.
 }
 \description{
-Creates the gene-set tables for each gene-set
+Creates the gene-set tables for each gene-set.
 }
 \examples{
 library(cnvGSAdata)
