@@ -21,10 +21,10 @@ Container class for the output structures produced by the main function (i.e. cn
 }
 \section{Slots}{
   \describe{
-    \item{\code{phData.ls}:}{Object of class \code{"list"} containing phenotype and covariate data}
-    \item{\code{res.ls}:}{Object of class \code{"list"} containing burden analysis results for gene-sets}
-    \item{\code{gsTables.ls}:}{Object of class \code{"list"} containing the gene-set tables}
-    \item{\code{gsData.ls}:}{Object of class \code{"list"} containing gene-set data}
+    \item{\code{phData.ls}:}{Object of class \code{"list"} containing phenotype and covariate data.}
+    \item{\code{res.ls}:}{Object of class \code{"list"} containing burden analysis results for gene-sets.}
+    \item{\code{gsTables.ls}:}{Object of class \code{"list"} containing the gene-set tables.}
+    \item{\code{gsData.ls}:}{Object of class \code{"list"} containing gene-set data.}
     % \item{\code{config.df}:}{Object of class \code{"list"} containing config data frame}
   }
 }

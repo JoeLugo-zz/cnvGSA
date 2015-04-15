@@ -7,12 +7,12 @@
 f.makeViz(cnvGSA.in, cnvGSA.out)
 }
 \arguments{
-\item{cnvGSA.in}{A CnvGSAInput S4 object}
+\item{cnvGSA.in}{A CnvGSAInput S4 object.}
 
-\item{cnvGSA.out}{A CnvGSAOutput S4 object}
+\item{cnvGSA.out}{A CnvGSAOutput S4 object.}
 }
 \value{
-Creates the plots to better understand the output
+Creates the plots to better understand the output.
 }
 \description{
 Creates the plots from the CnvGSAOutput data.

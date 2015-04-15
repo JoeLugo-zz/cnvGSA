@@ -2,7 +2,7 @@
 % Please edit documentation in R/cnvGSA.R
 \name{cnvGSAIn}
 \alias{cnvGSAIn}
-\title{Creating the input S4 object needed to run the script}
+\title{Creating the input S4 object needed to run the script.}
 \usage{
 cnvGSAIn(configFile, cnvGSA.in)
 }
@@ -12,10 +12,10 @@ cnvGSAIn(configFile, cnvGSA.in)
 \item{cnvGSA.in}{A CnvGSAInput S4 object.}
 }
 \value{
-A cnvGSAInput S4 object
+A cnvGSAInput S4 object.
 }
 \description{
-Creating the input S4 object needed to run the script
+Creating the input S4 object needed to run the script.
 }
 \examples{
 library(cnvGSAdata)

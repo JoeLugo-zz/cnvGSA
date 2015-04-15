@@ -35,24 +35,24 @@ Container class for the input structures required by the main function (i.e. cnv
 }
 \section{Slots}{
   \describe{
-    \item{\code{config.ls}:}{Object of class \code{"list"} containing the file names and paths}
-    \item{\code{params.ls}:}{Object of class \code{"list"} containing the test parameters}
-    \item{\code{cnvData.ls}:}{Object of class \code{"list"} containing CNV data}
-    \item{\code{phData.ls}:}{Object of class \code{"list"} containing phenotype and covariate data}
-    \item{\code{gsData.ls}:}{Object of class \code{"list"} containing gene-set data}
-    \item{\code{geneID.ls}:}{Object of class \code{"list"} containing Gene ID data}
+    \item{\code{config.ls}:}{Object of class \code{"list"} containing the file names and paths.}
+    \item{\code{params.ls}:}{Object of class \code{"list"} containing the test parameters.}
+    \item{\code{cnvData.ls}:}{Object of class \code{"list"} containing CNV data.}
+    \item{\code{phData.ls}:}{Object of class \code{"list"} containing phenotype and covariate data.}
+    \item{\code{gsData.ls}:}{Object of class \code{"list"} containing gene-set data.}
+    \item{\code{geneID.ls}:}{Object of class \code{"list"} containing Gene ID data.}
   }
 }
 \section{Constructor}{
       \code{CnvGSAInput( config.ls, params.ls, cnvData.ls, phData.ls, gsData.ls, geneID.ls)}:
       Creates a CnvGSAInput object.
       \describe{
-        \item{\code{config.ls}}{Structure containing the file names and paths}
-        \item{\code{params.ls}}{Structure containing main test parameters}
-        \item{\code{cnvData.ls}}{Structure containing CNV data along with sample-to-class information and filters}
-        \item{\code{phData.ls}}{Structure containing phenotype and covariate data}
-        \item{\code{gsData.ls}}{Structure containing gene-set data}
-        \item{\code{geneID.ls}}{Structure containing Gene ID data}
+        \item{\code{config.ls}}{Structure containing the file names and paths.}
+        \item{\code{params.ls}}{Structure containing main test parameters.}
+        \item{\code{cnvData.ls}}{Structure containing CNV data along with sample-to-class information and filters.}
+        \item{\code{phData.ls}}{Structure containing phenotype and covariate data.}
+        \item{\code{gsData.ls}}{Structure containing gene-set data.}
+        \item{\code{geneID.ls}}{Structure containing Gene ID data.}
       }
       See the vignette for complete details on each of these structures as well as a full example of how to load them.
 }

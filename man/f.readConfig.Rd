@@ -2,12 +2,12 @@
 % Please edit documentation in R/cnvGSA.R
 \name{f.readConfig}
 \alias{f.readConfig}
-\title{Reading in the config file}
+\title{Reading in the config file.}
 \usage{
 f.readConfig(configFile, cnvGSA.in)
 }
 \arguments{
-\item{configFile}{The file name and full path for the config file}
+\item{configFile}{The file name and full path for the config file.}
 
 \item{cnvGSA.in}{A CnvGSAInput S4 object.}
 }

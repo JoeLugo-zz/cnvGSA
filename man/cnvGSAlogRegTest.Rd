@@ -2,7 +2,7 @@
 % Please edit documentation in R/cnvGSA.R
 \name{cnvGSAlogRegTest}
 \alias{cnvGSAlogRegTest}
-\title{Performing the logistic regression tests on the CNV data}
+\title{Performing the logistic regression tests on the CNV data.}
 \usage{
 cnvGSAlogRegTest(cnvGSA.in, cnvGSA.out)
 }

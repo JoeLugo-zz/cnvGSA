@@ -7,9 +7,9 @@
 f.enrFiles(cnvGSA.in, cnvGSA.out)
 }
 \arguments{
-\item{cnvGSA.in}{A CnvGSAInput S4 object}
+\item{cnvGSA.in}{A CnvGSAInput S4 object.}
 
-\item{cnvGSA.out}{A CnvGSAOutput S4 object}
+\item{cnvGSA.out}{A CnvGSAOutput S4 object.}
 }
 \value{
 Returns a list with the data frames of the GMT file and the generic file.

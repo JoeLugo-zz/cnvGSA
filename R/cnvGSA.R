@@ -5,11 +5,11 @@ library (foreach)
 library (splitstackshape)
 
 # 2. Reading the config file
-#' Reading in the config file 
+#' Reading in the config file. 
 #'
 #' This function is used to read in all the values from the config file and change them in the S4 objects used throughout the scripts. If you would like to reload the config values, you will want to run this function.
 #'
-#' @param configFile The file name and full path for the config file 
+#' @param configFile The file name and full path for the config file. 
 #' @param cnvGSA.in A CnvGSAInput S4 object.
 #' @return A CnvGSAInput object with the updated config.ls and params.ls objects.
 #' @examples
@@ -381,7 +381,7 @@ f.readData <- function(cnvGSA.in)
 }
 
 # 5. Creating output
-#' Performing the logistic regression tests on the CNV data
+#' Performing the logistic regression tests on the CNV data.
 #'
 #' This test uses 4 different correction models and requires a case control study. It looks at odds ratios and calculates statistics for the gene-set collection.
 #'
@@ -710,9 +710,9 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 }
 
 # 6. Creating gsTables
-#' Creating the gene-set tables for each gene-set
+#' Creates the gene-set tables for each gene-set.
 #'
-#' Creates the gene-set tables for each gene-set
+#' Creates the gene-set tables for each gene-set.
 #'
 #' @param cnvGSA.in A CnvGSAInput S4 object.
 #' @param cnvGSA.out A CnvGSAOutput S4 object.
@@ -796,11 +796,11 @@ cnvGSAgsTables <- function(cnvGSA.in,cnvGSA.out)
 }
 
 # 7. Creating cnvGSA.in S4 object
-#' Creating the input S4 object needed to run the script
+#' Creating the input S4 object needed to run the script.
 #'
 #' @param configFile The file name for the config file including the full path.
 #' @param cnvGSA.in A CnvGSAInput S4 object.
-#' @return A cnvGSAInput S4 object
+#' @return A cnvGSAInput S4 object.
 #' @examples
 #' library(cnvGSAdata)
 #' data(cnvGSA_input_example)

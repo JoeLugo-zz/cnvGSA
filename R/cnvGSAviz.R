@@ -2,9 +2,9 @@
 
 #' Creates the plots from the CnvGSAOutput data.
 #'
-#' @param cnvGSA.in A CnvGSAInput S4 object
-#' @param cnvGSA.out A CnvGSAOutput S4 object
-#' @return Creates the plots to better understand the output
+#' @param cnvGSA.in A CnvGSAInput S4 object.
+#' @param cnvGSA.out A CnvGSAOutput S4 object.
+#' @return Creates the plots to better understand the output.
 #' @examples
 #' ## See vignette for full details and worked example
 
