@@ -179,25 +179,31 @@ f.makeViz <- function(cnvGSA.in,cnvGSA.out)
 	}
 
 if ("no_corr" %in% correctionViz || "ALL" %in% correctionViz || length(correctionViz) == 0){
-pdf(paste(cnvType,"_EffectSize_",timestamp,".pdf",sep=""))
-par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,1,0), lwd = 2)
-barplot (
-	main = paste(cnvType,": Effect Size",sep=""),
-	height = height_c.mx,
-	names.arg = z_set.labels, ylim = c (min (0,height_c.mx), ceiling(max (height_c.mx))), cex.names = labelSize,
-	beside = T, las = 2, col = rep (c ("gray60", "gray90"), times = length (z_set.labels)), 
-	border = as.character (matrix (data = border.vc, ncol = length (nc.vc), byrow = T)),
-	ylab = "Coeff")
-dev.off()
+	rangeVals <- range(height_c.mx, na.rm=TRUE,finite=TRUE)
+	rangeVals[1] <- min(0,rangeVals[1])
+	rangeVals[2] <- ceiling(rangeVals[2])
+	pdf(paste(cnvType,"_EffectSize_",timestamp,".pdf",sep=""))
+	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,1,0), lwd = 2)
+	barplot (
+		main = paste(cnvType,": Effect Size",sep=""),
+		height = height_c.mx,
+		names.arg = z_set.labels, ylim = rangeVals, cex.names = labelSize,
+		beside = T, las = 2, col = rep (c ("gray60", "gray90"), times = length (z_set.labels)), 
+		border = as.character (matrix (data = border.vc, ncol = length (nc.vc), byrow = T)),
+		ylab = "Coeff")
+	dev.off()
 }
 
 if ("uni_gc" %in% correctionViz || "ALL" %in% correctionViz || length(correctionViz) == 0){
+	rangeVals_U <- range(height_Uc.mx, na.rm=TRUE,finite=TRUE)
+	rangeVals_U[1] <- min(0,rangeVals_U[1])
+	rangeVals_U[2] <- ceiling(rangeVals_U[2])
 	pdf(paste(cnvType,"_EffectSize_U_",timestamp,".pdf",sep=""))
 	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,1,0), lwd = 2)
 	barplot (
 		main = paste(cnvType,": Effect Size: U",sep=""),
 		height = height_Uc.mx,
-		names.arg = z_set.labels, ylim = c (min (0,height_Uc.mx), ceiling(max (height_Uc.mx))), cex.names = labelSize,
+		names.arg = z_set.labels, ylim = rangeVals_U, cex.names = labelSize,
 		beside = T, las = 2, col = rep (c ("gray60", "gray90"), times = length (z_set.labels)), 
 		border = as.character (matrix (data = border_U.vc, ncol = length (nc_U.vc), byrow = T)),
 		ylab = "Coeff_U")
@@ -205,12 +211,15 @@ if ("uni_gc" %in% correctionViz || "ALL" %in% correctionViz || length(correction
 }
 
 if ("tot_l" %in% correctionViz || "ALL" %in% correctionViz || length(correctionViz) == 0){
+	rangeVals_TL <- range(height_TLc.mx, na.rm=TRUE,finite=TRUE)
+	rangeVals_TL[1] <- min(0,rangeVals_TL[1])
+	rangeVals_TL[2] <- ceiling(rangeVals_TL[2])
 	pdf(paste(cnvType,"_EffectSize_TL_",timestamp,".pdf",sep=""))
 	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,1,0), lwd = 2)
 	barplot (
 		main = paste(cnvType,": Effect Size: TL",sep=""),
 		height = height_TLc.mx,
-		names.arg = z_set.labels, ylim = c (min (0,height_TLc.mx), ceiling(max (height_TLc.mx))), cex.names = labelSize,
+		names.arg = z_set.labels, ylim = rangeVals_TL, cex.names = labelSize,
 		beside = T, las = 2, col = rep (c ("gray60", "gray90"), times = length (z_set.labels)), 
 		border = as.character (matrix (data = border_TL.vc, ncol = length (nc_TL.vc), byrow = T)),
 		ylab = "Coeff_TL")
@@ -218,12 +227,15 @@ if ("tot_l" %in% correctionViz || "ALL" %in% correctionViz || length(correctionV
 }
 
 if ("cnvn_ml" %in% correctionViz || "ALL" %in% correctionViz || length(correctionViz) == 0){
+	rangeVals_CNML <- range(height_CNMLc.mx, na.rm=TRUE,finite=TRUE)
+	rangeVals_CNML[1] <- min(0,rangeVals_CNML[1])
+	rangeVals_CNML[2] <- ceiling(rangeVals_CNML[2])
 	pdf(paste(cnvType,"_EffectSize_CNML_",timestamp,".pdf",sep=""))
 	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,1,0), lwd = 2)
 	barplot (
 		main = paste(cnvType,": Effect Size: CNML",sep=""),
 		height = height_CNMLc.mx,
-		names.arg = z_set.labels, ylim = c (min (0,height_CNMLc.mx), ceiling(max (height_CNMLc.mx))), cex.names = labelSize,
+		names.arg = z_set.labels, ylim = rangeVals_CNML, cex.names = labelSize,
 		beside = T, las = 2, col = rep (c ("gray60", "gray90"), times = length (z_set.labels)), 
 		border = as.character (matrix (data = border_CNML.vc, ncol = length (nc_CNML.vc), byrow = T)),
 		ylab = "Coeff_CNML")
@@ -242,10 +254,13 @@ if ("cnvn_ml" %in% correctionViz || "ALL" %in% correctionViz || length(correctio
 	} else if (Kl == "NO"){
 		height_s.mx <- t (z_set2.df[, z_col.names])
 	}
+	rangeVals_s <- range(height_s.mx, na.rm=TRUE,finite=TRUE)
+	rangeVals_s[1] <- min(0,rangeVals_s[1])
+	rangeVals_s[2] <- ceiling(rangeVals_s[2])
 	barplot (
 		main = paste(cnvType,": Support",sep=""),
 		height = height_s.mx,
-		names.arg = z_set.labels, ylim = c (min(0,height_s.mx), max(height_s.mx)), cex.names = labelSize, 
+		names.arg = z_set.labels, ylim = rangeVals_s, cex.names = labelSize, 
 		beside = T, las = 2, col = rep (c ("salmon", "skyblue"), times = length (z_set.labels)), 
 		border = "gray30",
 		ylab = "CASE and CTRL subject %")
@@ -331,6 +346,9 @@ if ("cnvn_ml" %in% correctionViz || "ALL" %in% correctionViz || length(correctio
 	max.n <- max (c (max (height_U.mx), max (height_TL.mx), max (height_CNML.mx)))
 
 if ("no_corr" %in% correctionViz || "ALL" %in% correctionViz || length(correctionViz) == 0){
+	rangeVals <- range(height.mx, na.rm=TRUE,finite=TRUE)
+	rangeVals[1] <- min(0,rangeVals[1])
+	rangeVals[2] <- ceiling(rangeVals[2])
 	z_set1.col    <- rep ("gray30", length (z_set.gsid))
 	z_set2.col    <- rep ("gray30", length (z_set.gsid))
 	pdf(paste(cnvType,"_Significance_Compare_",timestamp,".pdf",sep=""))
@@ -338,7 +356,7 @@ if ("no_corr" %in% correctionViz || "ALL" %in% correctionViz || length(correctio
 	barplot (
 		main = paste(cnvType,": Compare Significance:",sep=""),
 		height = height.mx,
-		names.arg = z_set.labels, ylim = c (min(0,min.n), ceiling(max(height.mx))), cex.names = labelSize,
+		names.arg = z_set.labels, ylim = rangeVals, cex.names = labelSize,
 		beside = T, las = 2, col = rep (c ("gray60", "gray90"), times = length (z_set.labels)), 
 		border = as.character (matrix (data = border.vc, ncol = length (nc.vc), byrow = T)),
 		ylab = "-Log (Dev P-value) * sign (Coeff)")
@@ -346,6 +364,9 @@ if ("no_corr" %in% correctionViz || "ALL" %in% correctionViz || length(correctio
 }
 
 if ("uni_gc" %in% correctionViz || "ALL" %in% correctionViz || length(correctionViz) == 0){
+	rangeVals_U <- range(height_U.mx, na.rm=TRUE,finite=TRUE)
+	rangeVals_U[1] <- min(0,rangeVals_U[1])
+	rangeVals_U[2] <- ceiling(rangeVals_U[2])
 	z_set1.col    <- rep ("gray30", length (z_set.gsid))
 	z_set2.col    <- rep ("gray30", length (z_set.gsid))
 	pdf(paste(cnvType,"_Significance_Compare_U_",timestamp,".pdf",sep=""))
@@ -353,7 +374,7 @@ if ("uni_gc" %in% correctionViz || "ALL" %in% correctionViz || length(correction
 	barplot (
 		main = paste(cnvType,": Compare Significance: U",sep=""),
 		height = height_U.mx,
-		names.arg = z_set.labels, ylim = c (min(0,min.n), ceiling(max.n)), cex.names = labelSize,
+		names.arg = z_set.labels, ylim = rangeVals_U, cex.names = labelSize,
 		beside = T, las = 2, col = rep (c ("gray60", "gray90"), times = length (z_set.labels)), 
 		border = as.character (matrix (data = border_U.vc, ncol = length (nc_U.vc), byrow = T)),
 		ylab = "-Log (Dev P-value) * sign (Coeff)")
@@ -361,12 +382,15 @@ if ("uni_gc" %in% correctionViz || "ALL" %in% correctionViz || length(correction
 }
 
 if ("tot_l" %in% correctionViz || "ALL" %in% correctionViz || length(correctionViz) == 0){
+	rangeVals_TL <- range(height_TL.mx, na.rm=TRUE,finite=TRUE)
+	rangeVals_TL[1] <- min(0,rangeVals_TL[1])
+	rangeVals_TL[2] <- ceiling(rangeVals_TL[2])
 	pdf(paste(cnvType,"_Significance_Compare_TL_",timestamp,".pdf",sep=""))
 	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,1,0), lwd = 2)
 	barplot (
 		main = paste(cnvType,": Compare Significance: TL",sep=""),
 		height = height_TL.mx,
-		names.arg = z_set.labels, ylim = c (min(0,min.n), ceiling(max.n)), cex.names = labelSize,
+		names.arg = z_set.labels, ylim = rangeVals_TL, cex.names = labelSize,
 		beside = T, las = 2, col = rep (c ("gray60", "gray90"), times = length (z_set.labels)), 
 		border = as.character (matrix (data = border_TL.vc, ncol = length (nc_TL.vc), byrow = T)),
 		ylab = "-Log (Dev P-value) * sign (Coeff)")
@@ -374,12 +398,15 @@ if ("tot_l" %in% correctionViz || "ALL" %in% correctionViz || length(correctionV
 }
 
 if ("cnvn_ml" %in% correctionViz || "ALL" %in% correctionViz || length(correctionViz) == 0){
+	rangeVals_CNML <- range(height_CNML.mx, na.rm=TRUE,finite=TRUE)
+	rangeVals_CNML[1] <- min(0,rangeVals_CNML[1])
+	rangeVals_CNML[2] <- ceiling(rangeVals_CNML[2])
 	pdf(paste(cnvType,"_Significance_Compare_CNML_",timestamp,".pdf",sep=""))
 	par (mar = c (plotHeight, 4, 4, 2), mgp=c(3,1,0), lwd = 2)
 	barplot (
 		main = paste(cnvType,": Compare Significance: CNML",sep=""),
 		height = height_CNML.mx,
-		names.arg = z_set.labels, ylim = c (min(0,min.n), ceiling(max.n)), cex.names = labelSize,
+		names.arg = z_set.labels, ylim = rangeVals_CNML, cex.names = labelSize,
 		beside = T, las = 2, col = rep (c ("gray60", "gray90"), times = length (z_set.labels)), 
 		border = as.character (matrix (data = border_CNML.vc, ncol = length (nc_CNML.vc), byrow = T)),
 		ylab = "-Log (Dev P-value) * sign (Coeff)")
