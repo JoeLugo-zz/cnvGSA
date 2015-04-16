@@ -449,7 +449,7 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 		cat("\n")
 		} else if (params.ls$Kl == "NO"){
 		ph_TYPE.df <- subset (ph_TYPE.df, OlpKL_SID == 0)
-		kl_fn <- paste("GsTest_",params.ls$projectName,"_",params.ls$cnvType,"_KLn_",timestamp,".txt", sep = "")
+		kl_fn2 <- paste("GsTest_",params.ls$projectName,"_",params.ls$cnvType,"_KLn_",timestamp,".txt", sep = "")
 		dataNames <- list(paste("covAll_chipAll_",params.ls$cnvType,"_KLn.df",sep=""))
 		cat("Kl - NO")
 		cat("\n")
