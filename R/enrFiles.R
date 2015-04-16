@@ -59,6 +59,8 @@ f.enrProcess <- function(cnvGSA.in,cnvGSA.out,Kl)
 	resKL$Phenotype <- -1
 	resKL[which(resKL[,coeff] > 0),]$Phenotype <- 1
 
+	if (nrow(resKL[which(resKL[,coeff] > 0),]) == 0){ warning("There seems to be no gene-sets with the ",coeff," greater than 0")}
+
 	if (keepCoeff == "NO")
 	{
 		resKL <- resKL[which(resKL$Phenotype == 1),]
