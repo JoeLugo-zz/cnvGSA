@@ -54,8 +54,8 @@ f.enrProcess <- function(cnvGSA.in,cnvGSA.out,Kl)
 	if (is.na(minRatio))        {minRatio <- 0}
 
 	# MAKING GENERIC FILE
-	resKL <- get(paste("covAll_chipAll_",cnvType,"_KLy.df",sep=""),res.ls)
-	if (Kl == "NO"){resKL <- get(paste("covAll_chipAll_",cnvType,"_KLn.df",sep=""),res.ls)}
+	if (Kl == "YES") {resKL <- get(paste("covAll_chipAll_",cnvType,"_KLy.df",sep=""),res.ls)}
+	if (Kl == "NO")  {resKL <- get(paste("covAll_chipAll_",cnvType,"_KLn.df",sep=""),res.ls)}
 	resKL$Phenotype <- -1
 	resKL[which(resKL[,coeff] > 0),]$Phenotype <- 1
 
