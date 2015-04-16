@@ -38,7 +38,9 @@ f.makeViz <- function(cnvGSA.in,cnvGSA.out)
 	if (is.na(labelSize))    {labelSize <- 0.7}
 
 	res.ls    <- vizData$res.ls
-	gsID.chv  <- get(paste("covAll_chipAll_",cnvType,"_KLy.df",sep=""),res.ls)$GsID
+	if ( Kl == "YES") { gsID.chv  <- get(paste("covAll_chipAll_",cnvType,"_KLy.df",sep=""),res.ls)$GsID }
+	if ( Kl == "NO")  { gsID.chv  <- get(paste("covAll_chipAll_",cnvType,"_KLn.df",sep=""),res.ls)$GsID }
+	if ( Kl == "ALL") { gsID.chv  <- get(paste("covAll_chipAll_",cnvType,"_KLy.df",sep=""),res.ls)$GsID }
 
 	if (gsList != ""){
 			gsList <- gsub(" ","",unlist(strsplit(readLines(gsList),",")),fixed=TRUE)
