@@ -95,13 +95,13 @@ f.readData <- function(cnvGSA.in)
 
 	if(params.ls$geneSep == ""){params.ls$geneSep <- ";";cnvGSA.in@params.ls$geneSep <- ";";}
 
-	geneID.ls       <- strsplit (cnv.df$geneID, split = params.ls$geneSep)# list of everything in that geneID
-	geneID_temp.chv <- setdiff (unlist (geneID.ls), NA)# everything that isnt NA in the list only has the ones with numbers
+	geneID.ls       <- strsplit (cnv.df$geneID, split = params.ls$geneSep) # list of everything in that geneID
+	geneID_temp.chv <- setdiff (unlist (geneID.ls), NA) # everything that isnt NA in the list only has the ones with numbers
 
 	geneID.ls       <- lapply (geneID.ls, setdiff, "n/a")
 	geneID_temp.chv <- setdiff (unlist (geneID.ls), c ("n/a", NA)) # everything that doesnt have "n/a" or NA
 
-	cnv.df$geneID    <- sapply (geneID.ls, paste, collapse = params.ls$geneSep) ## >> produces "NA" as missing value, rather than NA
+	cnv.df$geneID    <- sapply (geneID.ls, paste, collapse = params.ls$geneSep) # produces "NA" as missing value, rather than NA
 	cnv.df$geneID[which (cnv.df$geneID == "NA")] <- NA # makes all "NA" NA
 	cnv.df$geneID[which (cnv.df$geneID == ""  )] <- NA # makes all "" NA
 
