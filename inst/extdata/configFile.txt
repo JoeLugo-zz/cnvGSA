@@ -28,6 +28,7 @@ eventThreshold	1
 fLevels	10
 cores	4
 parallel	"YES"
+CNVevents	5
 ############
 # Viz Config
 ############

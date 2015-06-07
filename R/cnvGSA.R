@@ -53,12 +53,13 @@ f.readConfig <- function(configFile,cnvGSA.in)
 	eventThreshold  <- as.numeric(config.df[config.df$param == "eventThreshold","value"])
 	fLevels         <- as.numeric(config.df[config.df$param == "fLevels","value"])
 	cores           <- as.numeric(config.df[config.df$param == "cores","value"])
+	CNVevents  		<- as.numeric(config.df[config.df$param == "CNVevents","value"])
 
 	config.ls <- list(cnvFile, phFile, geneIDFile, klGeneFile, klLociFile, gsFile, outputPath, geneListFile, config.df)
-	params.ls <- list(Kl, projectName, gsUSet, cnvType, covariates, klOlp, corrections, geneSep, geneSetSizeMin, geneSetSizeMax,filtGs,covInterest, eventThreshold, fLevels,cores,parallel)
+	params.ls <- list(Kl, projectName, gsUSet, cnvType, covariates, klOlp, corrections, geneSep, geneSetSizeMin, geneSetSizeMax,filtGs,covInterest, eventThreshold, fLevels,cores,parallel,CNVevents)
 
 	names(config.ls) <- list("cnvFile","phFile","geneIDFile","klGeneFile","klLociFile","gsFile","outputPath","geneListFile","config.df")
-	names(params.ls) <- list("Kl","projectName","gsUSet","cnvType","covariates","klOlp","corrections","geneSep","geneSetSizeMin","geneSetSizeMax","filtGs","covInterest","eventThreshold","fLevels","cores","parallel")
+	names(params.ls) <- list("Kl","projectName","gsUSet","cnvType","covariates","klOlp","corrections","geneSep","geneSetSizeMin","geneSetSizeMax","filtGs","covInterest","eventThreshold","fLevels","cores","parallel","CNVevents")
 
 	if ("" %in% config.ls || "" %in% params.ls){
 		warning("There are empty values in the config file")
@@ -321,7 +322,7 @@ f.readData <- function(cnvGSA.in)
 	# this is what counts the events for each gene set 
 	sid2gs_TYPE.tab <- table (sid2gs_TYPE.df[, c ("SID", "GsKey")])
 
-	gs_colnames_TYPE.chv <- colnames (sid2gs_TYPE.tab)[which (apply (sid2gs_TYPE.tab > 0, 2, sum) >= 5)]
+	gs_colnames_TYPE.chv <- colnames (sid2gs_TYPE.tab)[which (apply (sid2gs_TYPE.tab > 0, 2, sum) >= params.ls$CNVevents)]
 
 	geneID.df <- read.table (config.ls$geneIDFile, header = T, sep = "\t", quote = "\"", stringsAsFactors = F) # "cnv_AGP_demo.txt" "PGC_41K_QC_exon.cnv.annot"
 
@@ -677,7 +678,7 @@ cnvGSAlogRegTest <- function(cnvGSA.in,cnvGSA.out) # master.ls,
 	}	
 
 	if(params.ls$Kl == "NO" || params.ls$Kl == "ALL" || params.ls$Kl == ""){
-	res.ls$covAll_chipAll_TYPE_KLn.df$FDR_BH      <- p.adjust (res.ls$covAll_chipAll_TYPE_KLn.df$Pvalue_U_dev, method = "BH")	
+	res.ls$covAll_chipAll_TYPE_KLn.df$FDR_BH      <- p.adjust (res.ls$covAll_chipAll_TYPE_KLn.df$Pvalue_dev, method = "BH")	
 	res.ls$covAll_chipAll_TYPE_KLn.df$FDR_BH_U    <- p.adjust (res.ls$covAll_chipAll_TYPE_KLn.df$Pvalue_U_dev, method = "BH")
 	res.ls$covAll_chipAll_TYPE_KLn.df$FDR_BH_TL   <- p.adjust (res.ls$covAll_chipAll_TYPE_KLn.df$Pvalue_TL_dev, method = "BH")
 	res.ls$covAll_chipAll_TYPE_KLn.df$FDR_BH_CNML <- p.adjust (res.ls$covAll_chipAll_TYPE_KLn.df$Pvalue_CNML_dev, method = "BH")
@@ -815,5 +816,6 @@ cnvGSAIn <- function(configFile,cnvGSA.in)
 
 # cnvGSA.in <- CnvGSAInput()
 # cnvGSA.in <- cnvGSAIn(configFile = "/Users/josephlugo/Documents/R/PGC2_test/R_Works/PGC2_config.txt",cnvGSA.in)
+# cnvGSA.in <- cnvGSAIn(configFile = "/Users/josephlugo/Documents/R/MehdiData/configFile.txt",cnvGSA.in)
 # cnvGSA.out <- CnvGSAOutput()
 # cnvGSA.out <- cnvGSAlogRegTest(cnvGSA.in,cnvGSA.out)
