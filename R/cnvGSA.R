@@ -30,6 +30,7 @@ library(splitstackshape)
 #' data(cnvGSA_input_example)
 #' ## See vignette for full details and worked example
 
+<<<<<<< HEAD
 f.readConfig <- function(configFile, cnvGSA.in) {
     # read configuration file; if not found, warn user and stop
     if(missing(configFile)) {
@@ -203,6 +204,60 @@ f.readConfig <- function(configFile, cnvGSA.in) {
         dir.create(outputPath)
     }
     return(cnvGSA.in)
+=======
+f.readConfig <- function(configFile,cnvGSA.in)
+{
+	if(missing(configFile)){
+		stop("Missing 'configFile' arguement")
+	}
+
+	config.df <- read.table (configFile, header=T, sep="\t", quote="\"", stringsAsFactors=F)
+
+	# CONFIG.LS
+	cnvFile         <- config.df[config.df$param == "cnvFile","value"]
+	phFile          <- config.df[config.df$param == "phFile","value"]
+	geneIDFile      <- config.df[config.df$param == "geneIDFile","value"]
+	klGeneFile      <- config.df[config.df$param == "klGeneFile","value"]
+	klLociFile      <- config.df[config.df$param == "klLociFile","value"]
+	gsFile          <- config.df[config.df$param == "gsFile","value"]
+	outputPath      <- config.df[config.df$param == "outputPath","value"]
+	geneListFile    <- config.df[config.df$param == "geneListFile","value"]
+
+	# PARAMS.LS
+	Kl              <- config.df[config.df$param == "Kl","value"]
+	projectName     <- config.df[config.df$param == "projectName","value"]
+	gsUSet          <- config.df[config.df$param == "gsUSet","value"]
+	cnvType         <- config.df[config.df$param == "cnvType","value"]
+	covariates      <- gsub(" ","",unlist(strsplit(config.df[config.df$param == "covariates","value"],split = ",")),fixed=TRUE)
+	klOlp           <- as.numeric(config.df[config.df$param == "klOlp","value"])
+	corrections     <- gsub(" ","",unlist(strsplit(config.df[config.df$param == "corrections","value"], split = ",")),fixed=TRUE)
+	geneSep         <- config.df[config.df$param == "geneSep","value"]
+	# keySep          <- config.df[config.df$param == "keySep","value"]
+	geneSetSizeMin  <- as.numeric(config.df[config.df$param == "geneSetSizeMin","value"])
+	geneSetSizeMax  <- as.numeric(config.df[config.df$param == "geneSetSizeMax","value"])
+	filtGs          <- config.df[config.df$param == "filtGs","value"] 	
+	covInterest     <- config.df[config.df$param == "covInterest","value"] 	
+	parallel        <- config.df[config.df$param == "parallel","value"] 	
+	eventThreshold  <- as.numeric(config.df[config.df$param == "eventThreshold","value"])
+	fLevels         <- as.numeric(config.df[config.df$param == "fLevels","value"])
+	cores           <- as.numeric(config.df[config.df$param == "cores","value"])
+	CNVevents  		<- as.numeric(config.df[config.df$param == "CNVevents","value"])
+
+	config.ls <- list(cnvFile, phFile, geneIDFile, klGeneFile, klLociFile, gsFile, outputPath, geneListFile, config.df)
+	params.ls <- list(Kl, projectName, gsUSet, cnvType, covariates, klOlp, corrections, geneSep, geneSetSizeMin, geneSetSizeMax,filtGs,covInterest, eventThreshold, fLevels,cores,parallel,CNVevents)
+
+	names(config.ls) <- list("cnvFile","phFile","geneIDFile","klGeneFile","klLociFile","gsFile","outputPath","geneListFile","config.df")
+	names(params.ls) <- list("Kl","projectName","gsUSet","cnvType","covariates","klOlp","corrections","geneSep","geneSetSizeMin","geneSetSizeMax","filtGs","covInterest","eventThreshold","fLevels","cores","parallel","CNVevents")
+
+	#if ("" %in% config.ls || "" %in% params.ls){
+	#	warning("There are empty values in the config file")
+	#}
+
+	cnvGSA.in@config.ls <- config.ls
+	cnvGSA.in@params.ls <- params.ls
+
+	return(cnvGSA.in)
+>>>>>>> efcba5556174499de61f2563571b970ef3b8b388
 }
 
 # 3. Read CNV + PhenoCovar and run checks
