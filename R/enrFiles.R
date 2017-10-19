@@ -2,7 +2,6 @@
 #'
 #' @param cnvGSA.in A CnvGSAInput S4 object.
 #' @param cnvGSA.out A CnvGSAOutput S4 object.
-<<<<<<< HEAD
 #' @return Returns a list with the data frames of the GMT file and the generic file.
 #' @examples
 #' ## See vignette for full details and worked example
